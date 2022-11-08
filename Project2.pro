@@ -19,12 +19,14 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     map.cpp \
-    mapwidget.cpp
+    mapwidget.cpp \
+    unit.cpp
 
 HEADERS += \
     mainwindow.h \
     map.h \
-    mapwidget.h
+    mapwidget.h \
+    unit.h
 
 FORMS += \
     mainwindow.ui \

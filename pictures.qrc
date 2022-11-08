@@ -1,2 +1,9 @@
-<!DOCTYPE RCC>
-<RCC version="1.0"/>
+<RCC>
+    <qresource prefix="/">
+        <file>pictures/green.jpg</file>
+        <file>pictures/brown.jpg</file>
+        <file>pictures/enemy1.jpg</file>
+        <file>pictures/tower1.jpg</file>
+        <file>pictures/tower2.jpg</file>
+    </qresource>
+</RCC>
