@@ -21,11 +21,12 @@ public:
     int get_x() const { return pos.x; }
     int get_y() const { return pos.y; }
     int get_atk() const { return atk; }
+    bool isAlive() const { return alive; }
     QString get_path() const { return path; }
 
-    //virtual bool inRange(Position _pos);
-    //virtual bool attack(Unit* target);
-    //virtual void hurted(Unit* attacker);
+    bool inRange(Position _pos);
+    bool attack(Unit* target);
+    void hurted(Unit* attacker);
 };
 
 class Enemy: public Unit //敌人
@@ -34,31 +35,19 @@ class Enemy: public Unit //敌人
 public:
     Enemy(int _hp, int _atk, int _range, QString _path, QVector<Position> p);
 
-    //bool inRange(Position _pos);
-    //bool attack(Unit* target);
-    //void hurted(Unit* attacker);
-
-    bool move();
+    bool move(const Map& map);
 };
 
 class MeleeTower: public Unit //近战塔
 {
 public:
     MeleeTower(int x, int y, int _hp, int _atk, int _range, QString _path);
-
-    //bool inRange(Position _pos);
-    //bool attack(Unit* target);
-    //void hurted(Unit* attacker);
 };
 
 class RemoteTower: public Unit //远程塔
 {
 public:
     RemoteTower(int x, int y, int _hp, int _atk, int _range, QString _path);
-
-    //bool inRange(Position _pos);
-    //bool attack(Unit* target);
-    //void hurted(Unit* attacker);
 };
 
 #endif // UNIT_H

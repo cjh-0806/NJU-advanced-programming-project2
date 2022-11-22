@@ -6,6 +6,8 @@
 #include <QPainter>
 #include <QTimer>
 #include <QMouseEvent>
+#include <QLabel>
+#include <QMessageBox>
 
 #include <stdlib.h>
 #include <ctime>
@@ -31,10 +33,18 @@ public:
 
 private:
     Map map; //地图
+    int money; //金币数
+    QLabel* moneyLabel; //金币标签
+    int life; //生命值
+    QLabel* lifeLabel; //生命标签
+
+    QVector<Position> rmtTowerPosVec; //远程塔安置点
+
     QVector<MeleeTower*> meleeTowerVec; //近战塔数组
     QVector<RemoteTower*> remoteTowerVec; //远程塔数组
     QVector<Enemy*> enemyVec; //敌人数组
     int enemyCount; //敌人数量
+
     Ui::MapWidget *ui;
 };
 

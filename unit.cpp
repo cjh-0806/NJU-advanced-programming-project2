@@ -1,12 +1,35 @@
 #include "unit.h"
 
-Unit::Unit(int x, int y, int _hp, int _atk, int _range, QString _path): pos(x, y)
+Unit::Unit(int x, int y, int _hp, int _atk, int _range, QString _path)
+    : pos(x, y), hp(_hp), atk(_atk), range(_range), path(_path)
 {
-    hp = _hp;
-    atk = _atk;
-    range = _range;
     alive = true;
-    path = _path;
+}
+
+bool Unit::inRange(Position _pos)
+{
+    if(abs(pos.x-_pos.x) <= range && abs(pos.y-_pos.y) <= range)
+        return true;
+    else return false;
+}
+
+bool Unit::attack(Unit* target)
+{
+    if(alive && target->isAlive() && inRange(target->get_pos()))
+    {
+        target->hurted(this);
+        return true;
+    }
+    else return false;
+}
+
+void Unit::hurted(Unit* attacker)
+{
+    if(!alive)
+        return;
+    hp -= attacker->get_atk();
+    if(hp <= 0)
+        alive = false;
 }
 
 Enemy::Enemy(int _hp, int _atk, int _range, QString _path, QVector<Position> p)
@@ -14,38 +37,16 @@ Enemy::Enemy(int _hp, int _atk, int _range, QString _path, QVector<Position> p)
 {
     enemyRoad = p;
 }
-/*
-bool Enemy::inRange(Position _pos)
-{
-    if (abs(_pos.x - pos.x) <= 1 && abs(_pos.y - pos.y) <= 1)
-        return true;
-    else
-        return false;
-}
 
-bool Enemy::attack(Unit* target)
-{
-    if(inRange(target->get_pos()))
-    {
-        target->hurted(this);
-        return true;
-    }
-    else
-        return false;
-}
-
-void Enemy::hurted(Unit* attacker)
-{
-    hp -= attacker->get_atk();
-}
-*/
-bool Enemy::move()
+bool Enemy::move(const Map& map)
 {
     if(enemyRoad.empty()) //走到路径尽头
     {
         alive = false;
         return false;
     }
+    if(map(enemyRoad[0].x, enemyRoad[0].y) == MELEETOWER_VALUE)
+        return true;
     //更新坐标
     pos.x = enemyRoad[0].x;
     pos.y = enemyRoad[0].y;
