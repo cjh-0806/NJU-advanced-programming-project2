@@ -1,7 +1,7 @@
 #include "unit.h"
 
 Unit::Unit(int x, int y, int _hp, int _atk, int _range, QString _path)
-    : pos(x, y), hp(_hp), atk(_atk), range(_range), path(_path)
+    : pos(x, y), hp(_hp), sumhp(_hp), atk(_atk), range(_range), path(_path)
 {
     alive = true;
 }

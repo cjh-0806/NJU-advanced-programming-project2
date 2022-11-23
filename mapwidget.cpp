@@ -157,6 +157,12 @@ void MapWidget::drawEnemy(QPainter& painter)
             int x = enemy->get_x() * UNIT_LENGTH + 10;
             int y = enemy->get_y() * UNIT_LENGTH + 10;
             painter.drawPixmap(x, y, 80, 80, enemy->get_path());
+            if((enemy->get_hp() / enemy->get_sumhp()) < 1) //设置血条颜色
+                painter.setBrush(QBrush(Qt::red));
+            else
+                painter.setBrush(QBrush(Qt::green));
+            float rate = (float)(enemy->get_hp())/(float)(enemy->get_sumhp()); //计算比例
+            painter.drawRect(x, y-10, rate*80, 10); //绘制矩形
         }
     }
 }
@@ -170,6 +176,12 @@ void MapWidget::drawMeleeTower(QPainter& painter)
             int x = tower->get_x() * UNIT_LENGTH + 10;
             int y = tower->get_y() * UNIT_LENGTH + 10;
             painter.drawPixmap(x, y, 80, 80, tower->get_path());
+            if((tower->get_hp() / tower->get_sumhp()) < 1) //设置血条颜色
+                painter.setBrush(QBrush(Qt::red));
+            else
+                painter.setBrush(QBrush(Qt::green));
+            float rate = (float)(tower->get_hp())/(float)(tower->get_sumhp()); //计算比例
+            painter.drawRect(x, y-10, rate*80, 10); //绘制矩形
         }
     }
 }
