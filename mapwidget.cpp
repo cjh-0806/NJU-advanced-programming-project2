@@ -8,6 +8,7 @@
 #define MELEETOWER_PATH ":/pictures/tower1.jpg"
 #define REMOTETOWER_PATH ":/pictures/tower2.jpg"
 
+
 MapWidget::MapWidget(QWidget *parent, Map m) :
     QWidget(parent), map(m),
     ui(new Ui::MapWidget)
@@ -45,7 +46,7 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
 
 
     //产生敌人的计时器
-    QTimer* enemyTimer = new QTimer(this);
+    enemyTimer = new QTimer(this);
     enemyTimer->start(2000);
     connect(enemyTimer, &QTimer::timeout, [&]()
     {
@@ -58,15 +59,15 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
         }
         if(life > 0 && enemyVec.empty()) //击败所有敌人，游戏成功
         {
-            //QMessageBox::information(this, "结束", "游戏成功！");
-            //enemyTimer->stop();
-            //this->close();
+            enemyTimer->stop();
+            QMessageBox::information(this, "结束", "游戏成功！");
+            this->close();
         }
     });
 
 
     //游戏的主计时器
-    QTimer* gameTimer = new QTimer(this);
+    gameTimer = new QTimer(this);
     gameTimer->start(1000);
     connect(gameTimer, &QTimer::timeout, [&]()
     {

@@ -45,6 +45,9 @@ private:
     QVector<Enemy*> enemyVec; //敌人数组
     int enemyCount; //敌人数量
 
+    QTimer* enemyTimer; //产生敌人的计时器
+    QTimer* gameTimer; //游戏的主计时器
+
     Ui::MapWidget *ui;
 };
 
