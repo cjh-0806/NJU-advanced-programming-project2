@@ -4,6 +4,15 @@
 #define UNIT_LENGTH 100
 #define ENEMY_MAX_NUM 5
 
+#define RAGE_AFFIX 0 //狂暴词缀
+#define FROZEN_AFFIX 1 //冰冻词缀
+#define AOE_AFFIX 2 //群伤词缀
+#define BLEED_AFFIX 3 //放血词缀
+#define FLASH_AFFIX 4 //闪现词缀
+#define SPEEDUP_AFFIX 5 //加速词缀
+
+#define GRASS_PATH ":/pictures/green.jpg"
+#define ROAD_PATH ":/pictures/brown.jpg"
 #define ENEMY1_PATH ":/pictures/enemy1.jpg"
 #define MELEETOWER_PATH ":/pictures/tower1.jpg"
 #define REMOTETOWER_PATH ":/pictures/tower2.jpg"
@@ -13,7 +22,7 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
     QWidget(parent), map(m),
     ui(new Ui::MapWidget)
 {
-    this->setFixedSize(map.get_m() * UNIT_LENGTH, map.get_n() * UNIT_LENGTH);
+    this->setFixedSize((map.get_m()+1) * UNIT_LENGTH, max(6, map.get_n()) * UNIT_LENGTH);
     ui->setupUi(this);
     enemyCount = 0;
 
@@ -44,6 +53,9 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                 rmtTowerPosVec.push_back(Position(p.x, p.y + 1));
         }
 
+    //词缀库初始化
+    for(int i = 0; i < 6; ++i)
+        affixArr[i] = 0; //每个词缀数量为0
 
     //产生敌人的计时器
     enemyTimer = new QTimer(this);
@@ -74,11 +86,13 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
         //敌人移动
         for(auto enemy = enemyVec.begin(); enemy != enemyVec.end(); )
         {
-            if(!(*enemy)->isAlive()) //敌人死亡，删去这个敌人
+            if(!(*enemy)->isAlive()) //敌人死亡，删去这个敌人，掉落词缀，加金币
             {
-                enemyVec.erase(enemy);
                 money += 20;
                 moneyLabel->setText("金币数：" + QString::number(money));
+                int index = rand() % 4; //随机掉落我方词缀
+                affixArr[index]++;
+                enemyVec.erase(enemy);
             }
             else if(!(*enemy)->move(map)) //敌人走到路径尽头，删去这个敌人，生命值-1
             {
@@ -126,12 +140,19 @@ MapWidget::~MapWidget()
     delete ui;
 }
 
+
 void MapWidget::paintEvent(QPaintEvent*)
 {
     QPainter painter(this);
-    QString grass_path(":/pictures/green.jpg");
-    QString road_path(":/pictures/brown.jpg");
-    //放置草地和路径
+    drawMap(painter);
+    drawEnemy(painter);
+    drawMeleeTower(painter);
+    drawRemoteTower(painter);
+    drawAffix(painter);
+}
+
+void MapWidget::drawMap(QPainter& painter) //画出地图
+{
     int i, j;
     for(i = 0; i < map.get_m(); ++i)
         for(j = 0; j < map.get_n(); ++j)
@@ -139,24 +160,21 @@ void MapWidget::paintEvent(QPaintEvent*)
             int x = i * UNIT_LENGTH;
             int y = j * UNIT_LENGTH;
             if(map(i,j) == GRASS_VALUE || map(i, j) == REMOTETOWER_VALUE)
-                painter.drawPixmap(x, y, UNIT_LENGTH, UNIT_LENGTH, grass_path);
+                painter.drawPixmap(x, y, UNIT_LENGTH, UNIT_LENGTH, QString::fromStdString(GRASS_PATH));
             if(map(i,j) == ROAD_VALUE || map(i, j) == MELEETOWER_VALUE)
-                painter.drawPixmap(x, y, UNIT_LENGTH, UNIT_LENGTH, road_path);
+                painter.drawPixmap(x, y, UNIT_LENGTH, UNIT_LENGTH, QString::fromStdString(ROAD_PATH));
         }
-    drawEnemy(painter);
-    drawMeleeTower(painter);
-    drawRemoteTower(painter);
 }
 
-void MapWidget::drawEnemy(QPainter& painter)
+void MapWidget::drawEnemy(QPainter& painter) //画出敌人
 {
     for(auto enemy : enemyVec)
     {
         if(enemy->isAlive())
         {
-            int x = enemy->get_x() * UNIT_LENGTH + 10;
-            int y = enemy->get_y() * UNIT_LENGTH + 10;
-            painter.drawPixmap(x, y, 80, 80, enemy->get_path());
+            int x = (enemy->get_x()+0.1) * UNIT_LENGTH;
+            int y = (enemy->get_y()+0.1) * UNIT_LENGTH;
+            painter.drawPixmap(x, y, 0.8*UNIT_LENGTH, 0.8*UNIT_LENGTH, enemy->get_path());
             if((enemy->get_hp() / enemy->get_sumhp()) < 1) //设置血条颜色
                 painter.setBrush(QBrush(Qt::red));
             else
@@ -167,15 +185,15 @@ void MapWidget::drawEnemy(QPainter& painter)
     }
 }
 
-void MapWidget::drawMeleeTower(QPainter& painter)
+void MapWidget::drawMeleeTower(QPainter& painter) //画出近战塔
 {
     for(auto tower : meleeTowerVec)
     {
         if(tower->isAlive())
         {
-            int x = tower->get_x() * UNIT_LENGTH + 10;
-            int y = tower->get_y() * UNIT_LENGTH + 10;
-            painter.drawPixmap(x, y, 80, 80, tower->get_path());
+            int x = (tower->get_x()+0.1) * UNIT_LENGTH;
+            int y = (tower->get_y()+0.1) * UNIT_LENGTH;
+            painter.drawPixmap(x, y, 0.8*UNIT_LENGTH, 0.8*UNIT_LENGTH, tower->get_path());
             if((tower->get_hp() / tower->get_sumhp()) < 1) //设置血条颜色
                 painter.setBrush(QBrush(Qt::red));
             else
@@ -186,15 +204,39 @@ void MapWidget::drawMeleeTower(QPainter& painter)
     }
 }
 
-void MapWidget::drawRemoteTower(QPainter& painter)
+void MapWidget::drawRemoteTower(QPainter& painter) //画出远程塔
 {
     for(auto tower : remoteTowerVec)
     {
-        int x = tower->get_x() * UNIT_LENGTH + 10;
-        int y = tower->get_y() * UNIT_LENGTH + 10;
-        painter.drawPixmap(x, y, 80, 80, tower->get_path());
+        int x = (tower->get_x()+0.1) * UNIT_LENGTH;
+        int y = (tower->get_y()+0.1) * UNIT_LENGTH;
+        painter.drawPixmap(x, y, 0.8*UNIT_LENGTH, 0.8*UNIT_LENGTH, tower->get_path());
     }
 }
+
+void MapWidget::drawAffix(QPainter& painter) //画出词缀库
+{
+    int x = (map.get_m()+0.1) * UNIT_LENGTH;
+    int y = 0.1 * UNIT_LENGTH;
+    for(int i = 0; i < 6; ++i)
+    {
+        QString path = ":/pictures/affix" + QString::number(i) +".jpg";
+        painter.drawPixmap(x, y, 0.6*UNIT_LENGTH, 0.6*UNIT_LENGTH, path);
+        QFont font("宋体", 8);
+        painter.setFont(font);
+        switch(i)
+        {
+        case 0:painter.drawText(x, y + 0.8*UNIT_LENGTH, "狂暴：" + QString::number(affixArr[i])); break;
+        case 1:painter.drawText(x, y + 0.8*UNIT_LENGTH, "冰系：" + QString::number(affixArr[i])); break;
+        case 2:painter.drawText(x, y + 0.8*UNIT_LENGTH, "群伤：" + QString::number(affixArr[i])); break;
+        case 3:painter.drawText(x, y + 0.8*UNIT_LENGTH, "放血：" + QString::number(affixArr[i])); break;
+        case 4:painter.drawText(x, y + 0.8*UNIT_LENGTH, "闪现：" + QString::number(affixArr[i])); break;
+        case 5:painter.drawText(x, y + 0.8*UNIT_LENGTH, "神速：" + QString::number(affixArr[i])); break;
+        }
+        y += UNIT_LENGTH;
+    }
+}
+
 
 void MapWidget::mousePressEvent(QMouseEvent* event)
 {
@@ -268,3 +310,4 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
     }
     update();
 }
+

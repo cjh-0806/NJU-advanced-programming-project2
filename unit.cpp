@@ -57,11 +57,11 @@ bool Enemy::move(const Map& map)
 MeleeTower::MeleeTower(int x, int y, int _hp, int _atk, int _range, QString _path)
     : Unit(x, y, _hp, _atk, _range, _path)
 {
-
+    affix1 = affix2 = -1;
 }
 
 RemoteTower::RemoteTower(int x, int y, int _hp, int _atk, int _range, QString _path)
     : Unit(x, y, _hp, _atk, _range, _path)
 {
-
+    affix1 = affix2 = -1;
 }

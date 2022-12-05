@@ -43,12 +43,16 @@ public:
 
 class MeleeTower: public Unit //近战塔
 {
+    int affix1; //两个词缀槽
+    int affix2;
 public:
     MeleeTower(int x, int y, int _hp, int _atk, int _range, QString _path);
 };
 
 class RemoteTower: public Unit //远程塔
 {
+    int affix1; //两个词缀槽
+    int affix2;
 public:
     RemoteTower(int x, int y, int _hp, int _atk, int _range, QString _path);
 };

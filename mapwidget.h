@@ -8,6 +8,7 @@
 #include <QMouseEvent>
 #include <QLabel>
 #include <QMessageBox>
+#include <QFont>
 
 #include <stdlib.h>
 #include <ctime>
@@ -26,9 +27,11 @@ public:
     explicit MapWidget(QWidget *parent, Map m);
     ~MapWidget();
     void paintEvent(QPaintEvent*); //绘图事件
+    void drawMap(QPainter&); //画出地图
     void drawEnemy(QPainter&); //画出敌人
     void drawMeleeTower(QPainter&); //画出近战塔
     void drawRemoteTower(QPainter&); //画出远程塔
+    void drawAffix(QPainter&); //画出词缀库
     void mousePressEvent(QMouseEvent*); //鼠标点击事件
 
 private:
@@ -39,6 +42,7 @@ private:
     QLabel* lifeLabel; //生命标签
 
     QVector<Position> rmtTowerPosVec; //远程塔安置点
+    int affixArr[6]; //词缀库，六种词缀
 
     QVector<MeleeTower*> meleeTowerVec; //近战塔数组
     QVector<RemoteTower*> remoteTowerVec; //远程塔数组
@@ -49,6 +53,7 @@ private:
     QTimer* gameTimer; //游戏的主计时器
 
     Ui::MapWidget *ui;
+
 };
 
 #endif // MAPWIDGET_H
