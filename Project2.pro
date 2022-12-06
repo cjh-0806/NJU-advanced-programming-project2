@@ -20,12 +20,14 @@ SOURCES += \
     mainwindow.cpp \
     map.cpp \
     mapwidget.cpp \
+    selectaffix.cpp \
     unit.cpp
 
 HEADERS += \
     mainwindow.h \
     map.h \
     mapwidget.h \
+    selectaffix.h \
     unit.h
 
 FORMS += \

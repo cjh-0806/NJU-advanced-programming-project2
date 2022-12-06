@@ -43,18 +43,36 @@ public:
 
 class MeleeTower: public Unit //近战塔
 {
-    int affix1; //两个词缀槽
-    int affix2;
+    int affixCount;
+    bool rage;
+    bool frozen;
+    bool aoe;
 public:
     MeleeTower(int x, int y, int _hp, int _atk, int _range, QString _path);
+    int get_count() const { return affixCount; }
+    bool get_rage() const { return rage; }
+    bool get_frozen() const { return frozen; }
+    bool get_aoe() const { return aoe; }
+
+    void add_count() { affixCount++; }
+    void dec_count() { affixCount--; }
+    void add_rage();
+    void add_frozen();
+    void add_aoe();
 };
 
 class RemoteTower: public Unit //远程塔
 {
-    int affix1; //两个词缀槽
-    int affix2;
+    int affixCount;
+    bool bleed;
 public:
     RemoteTower(int x, int y, int _hp, int _atk, int _range, QString _path);
+    int get_count() const { return affixCount; }
+    bool get_bleed() const { return bleed; }
+
+    void add_count() { affixCount++; }
+    void dec_count() { affixCount--; }
+    void add_bleed();
 };
 
 #endif // UNIT_H

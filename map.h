@@ -13,6 +13,8 @@ using namespace std;
 #define MELEETOWER_VALUE 2
 #define REMOTETOWER_VALUE 3
 
+#define UNIT_LENGTH 100
+
 struct Position
 {
     int x;
