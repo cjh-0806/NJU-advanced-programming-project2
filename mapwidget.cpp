@@ -124,6 +124,7 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                 if(!(*tower)->isAlive())
                 {
                     map.set_value((*tower)->get_x(), (*tower)->get_y(), ROAD_VALUE);
+                    select.set_display(false);
                     meleeTowerVec.erase(tower);
                 }
                 else tower++;
@@ -270,9 +271,9 @@ void MapWidget::drawSelectAffix(QPainter& painter) //画出词缀选择框
         return;
     if(select.get_type() == MELEETOWER_VALUE) //近战塔
     {
-        if(select.get_gray()) //灰度显示
+        for(int i = 0; i < 3; ++i)
         {
-            for(int i = 0; i < 3; ++i)
+            if(select.get_gray(i) || affixArr[i] == 0) //灰度显示
             {
                 QImage *image = new QImage(select.affixPaths[i]);
                 QImage *gray_image = new QImage;
@@ -281,14 +282,11 @@ void MapWidget::drawSelectAffix(QPainter& painter) //画出词缀选择框
                 pixmap->convertFromImage(*gray_image);
                 painter.drawPixmap(select.get_x()+i*select.get_height(), select.get_y(), select.get_height(), select.get_height(), *pixmap);
             }
-        }
-        else
-        {
-            painter.drawPixmap(select.get_x(), select.get_y(), select.get_height(), select.get_height(), select.affixPaths[0]);
-            painter.drawPixmap(select.get_x()+select.get_height(), select.get_y(), select.get_height(), select.get_height(), select.affixPaths[1]);
-            painter.drawPixmap(select.get_x()+select.get_height()*2, select.get_y(), select.get_height(), select.get_height(), select.affixPaths[2]);
+            else
+                painter.drawPixmap(select.get_x()+i*select.get_height(), select.get_y(), select.get_height(), select.get_height(), select.affixPaths[i]);
         }
         painter.drawPixmap(select.get_x()+select.get_height()*3, select.get_y(), select.get_height(), select.get_height(), select.affixPaths[3]);
+        //已安装这类词缀在上方显示√
         if(meleeTowerVec[select.get_index()]->get_rage())
             painter.drawText(select.get_x(), select.get_y()-10, "√");
         if(meleeTowerVec[select.get_index()]->get_frozen())
@@ -298,7 +296,7 @@ void MapWidget::drawSelectAffix(QPainter& painter) //画出词缀选择框
     }
     else //远程塔
     {
-        if(select.get_gray()) //灰度显示
+        if(select.get_gray(0) || affixArr[3] == 0) //灰度显示
         {
             QImage *image = new QImage(select.affixPaths[0]);
             QImage *gray_image = new QImage;
@@ -309,9 +307,10 @@ void MapWidget::drawSelectAffix(QPainter& painter) //画出词缀选择框
         }
         else
             painter.drawPixmap(select.get_x(), select.get_y(), select.get_height(), select.get_height(), select.affixPaths[0]);
+        painter.drawPixmap(select.get_x()+select.get_height(), select.get_y(), select.get_height(), select.get_height(), select.affixPaths[1]);
+        //已安装这类词缀在上方显示√
         if(remoteTowerVec[select.get_index()]->get_bleed())
             painter.drawText(select.get_x(), select.get_y()-10, "√");
-        painter.drawPixmap(select.get_x()+select.get_height(), select.get_y(), select.get_height(), select.get_height(), select.affixPaths[1]);
     }
 }
 
@@ -330,66 +329,140 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
     {
         if(select.get_type() == MELEETOWER_VALUE) //近战塔
         {
-            if(select.get_x() + select.get_height()*3 <= mx && mx < select.get_x() + select.get_length()) //撤销塔
+            if(meleeTowerVec[select.get_index()]->get_count() == 2)
+            {
+                select.set_gray(0, true); //词缀灰度显示
+                select.set_gray(1, true);
+                select.set_gray(2, true);
+            }
+            if(select.get_x() <= mx && mx < select.get_x() + select.get_height()) //狂暴词缀
+            {
+                if(!meleeTowerVec[select.get_index()]->get_rage())
+                {
+                    if(meleeTowerVec[select.get_index()]->get_count() < 2)
+                    {
+                        meleeTowerVec[select.get_index()]->add_rage();
+                        meleeTowerVec[select.get_index()]->add_count();
+                        qDebug() << "安装狂暴词缀";
+                        affixArr[0]--;
+                        //词缀灰度显示
+                        select.set_gray(0, true);
+                        if(meleeTowerVec[select.get_index()]->get_count() == 2)
+                            select.set_gray(1, true), select.set_gray(2, true);
+                    }
+                }
+                else
+                {
+                    meleeTowerVec[select.get_index()]->dec_rage();
+                    meleeTowerVec[select.get_index()]->dec_count();
+                    qDebug() << "卸下狂暴词缀";
+                    //取消词缀灰度显示
+                    select.set_gray(0, false);
+                    if(meleeTowerVec[select.get_index()]->get_count() < 2)
+                        select.set_gray(1, false), select.set_gray(2, false);
+                }
+            }
+            else if(select.get_x() + select.get_height() <= mx && mx < select.get_x() + select.get_height()*2) //冰系词缀
+            {
+                if(!meleeTowerVec[select.get_index()]->get_frozen())
+                {
+                    if(meleeTowerVec[select.get_index()]->get_count() < 2)
+                    {
+                        meleeTowerVec[select.get_index()]->add_frozen();
+                        meleeTowerVec[select.get_index()]->add_count();
+                        qDebug() << "安装冰系词缀";
+                        affixArr[1]--;
+                        //词缀灰度显示
+                        select.set_gray(1, true);
+                        if(meleeTowerVec[select.get_index()]->get_count() == 2)
+                            select.set_gray(0, true), select.set_gray(2, true);
+                    }
+                }
+                else
+                {
+                    meleeTowerVec[select.get_index()]->dec_frozen();
+                    meleeTowerVec[select.get_index()]->dec_count();
+                    qDebug() << "卸下冰系词缀";
+                    //取消词缀灰度显示
+                    select.set_gray(1, false);
+                    if(meleeTowerVec[select.get_index()]->get_count() < 2)
+                        select.set_gray(0, false), select.set_gray(2, false);
+                }
+            }
+            else if(select.get_x() + select.get_height()*2 <= mx && mx < select.get_x() + select.get_height()*3) //群伤词缀
+            {
+                if(!meleeTowerVec[select.get_index()]->get_aoe())
+                {
+                    if(meleeTowerVec[select.get_index()]->get_count() < 2)
+                    {
+                        meleeTowerVec[select.get_index()]->add_aoe();
+                        meleeTowerVec[select.get_index()]->add_count();
+                        qDebug() << "安装群伤词缀";
+                        affixArr[2]--;
+                        //词缀灰度显示
+                        select.set_gray(2, true);
+                        if(meleeTowerVec[select.get_index()]->get_count() == 2)
+                            select.set_gray(0, true), select.set_gray(1, true);
+                    }
+                }
+                else
+                {
+                    meleeTowerVec[select.get_index()]->dec_aoe();
+                    meleeTowerVec[select.get_index()]->dec_count();
+                    qDebug() << "卸下群伤词缀";
+                    //取消词缀灰度显示
+                    select.set_gray(2, false);
+                    if(meleeTowerVec[select.get_index()]->get_count() < 2)
+                        select.set_gray(0, false), select.set_gray(1, false);
+                }
+            }
+            else //撤销塔
             {
                 map.set_value(meleeTowerVec[select.get_index()]->get_x(), meleeTowerVec[select.get_index()]->get_y(), ROAD_VALUE);
                 qDebug() << meleeTowerVec[select.get_index()]->get_x() << meleeTowerVec[select.get_index()]->get_y() << "处撤销近战塔";
                 meleeTowerVec.erase(meleeTowerVec.begin() + select.get_index());
                 money += 60;
                 moneyLabel->setText("金币数：" + QString::number(money));
-                select.set_gray(false); //撤销词缀灰度显示
+                select.set_gray(0, false), select.set_gray(1, false), select.set_gray(2, false); //撤销词缀灰度显示
                 select.set_display(false);
-            }
-            else if(meleeTowerVec[select.get_index()]->get_count() == 2)
-                select.set_gray(true); //词缀灰度显示
-            else
-            {
-                if(select.get_x() <= mx && mx < select.get_x() + select.get_height()
-                        && !meleeTowerVec[select.get_index()]->get_rage()) //狂暴词缀
-                {
-                    meleeTowerVec[select.get_index()]->add_rage();
-                    meleeTowerVec[select.get_index()]->add_count();
-                    qDebug() << "安装狂暴词缀";
-                }
-                else if(select.get_x() + select.get_height() <= mx && mx < select.get_x() + select.get_height()*2
-                        && !meleeTowerVec[select.get_index()]->get_frozen()) //冰系词缀
-                {
-                    meleeTowerVec[select.get_index()]->add_frozen();
-                    meleeTowerVec[select.get_index()]->add_count();
-                    qDebug() << "安装冰系词缀";
-                }
-                else if(select.get_x() + select.get_height()*2 <= mx && mx < select.get_x() + select.get_height()*3
-                        && !meleeTowerVec[select.get_index()]->get_aoe()) //群伤词缀
-                {
-                    meleeTowerVec[select.get_index()]->add_aoe();
-                    meleeTowerVec[select.get_index()]->add_count();
-                    qDebug() << "安装群伤词缀";
-                }
-                if(meleeTowerVec[select.get_index()]->get_count() == 2)
-                    select.set_gray(true); //词缀灰度显示
             }
         }
         else //远程塔
         {
-            if(select.get_x() + select.get_height() <= mx && mx < select.get_x() + select.get_length()) //撤销塔
+            if(remoteTowerVec[select.get_index()]->get_count() == 2)
+                select.set_gray(0, true); //词缀灰度显示
+            if(select.get_x() <= mx && mx < select.get_x() + select.get_height()) //放血词缀
+            {
+                if(!remoteTowerVec[select.get_index()]->get_bleed())
+                {
+                    if(remoteTowerVec[select.get_index()]->get_count() < 2)
+                    {
+                        remoteTowerVec[select.get_index()]->add_bleed();
+                        remoteTowerVec[select.get_index()]->add_count();
+                        qDebug() << "安装放血词缀";
+                        affixArr[3]--;
+                        if(remoteTowerVec[select.get_index()]->get_count() == 2)
+                            select.set_gray(0, true); //词缀灰度显示
+                    }
+                }
+                else
+                {
+                    remoteTowerVec[select.get_index()]->dec_bleed();
+                    remoteTowerVec[select.get_index()]->dec_count();
+                    qDebug() << "卸下放血词缀";
+                    if(remoteTowerVec[select.get_index()]->get_count() < 2)
+                        select.set_gray(0, false); //取消词缀灰度显示
+                }
+            }
+            else //撤销塔
             {
                 map.set_value(remoteTowerVec[select.get_index()]->get_x(), remoteTowerVec[select.get_index()]->get_y(), GRASS_VALUE);
                 qDebug() << remoteTowerVec[select.get_index()]->get_x() << remoteTowerVec[select.get_index()]->get_y() << "处撤销远程塔";
                 remoteTowerVec.erase(remoteTowerVec.begin() + select.get_index());
                 money += 96;
                 moneyLabel->setText("金币数：" + QString::number(money));
-                select.set_gray(false); //撤销词缀灰度显示
+                select.set_gray(0, false); //撤销词缀灰度显示
                 select.set_display(false);
-            }
-            else if(remoteTowerVec[select.get_index()]->get_count() == 2)
-                select.set_gray(true); //词缀灰度显示
-            else if(!remoteTowerVec[select.get_index()]->get_bleed())//放血词缀
-            {
-                remoteTowerVec[select.get_index()]->add_bleed();
-                remoteTowerVec[select.get_index()]->add_count();
-                if(remoteTowerVec[select.get_index()]->get_count() == 2)
-                    select.set_gray(true); //词缀灰度显示
-                qDebug() << "安装放血词缀";
             }
         }
     }
@@ -407,12 +480,17 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 {
                     if(map(p.x, p.y) == MELEETOWER_VALUE) //路径点已存在近战塔
                     {
-                        int index = 0;
-                        for(auto tower = meleeTowerVec.begin(); tower != meleeTowerVec.end(); ++tower, ++index)
-                            if((*tower)->get_x() == p.x && (*tower)->get_y() == p.y)
+                        for(int index = 0; index < meleeTowerVec.size(); ++index)
+                            if(meleeTowerVec[index]->get_x() == p.x && meleeTowerVec[index]->get_y() == p.y)
                             {
-                                select.change(MELEETOWER_VALUE, (*tower)->get_pos(), index); //换显示框内容
+                                select.change(MELEETOWER_VALUE, meleeTowerVec[index]->get_pos(), index); //换显示框内容
                                 select.set_display(true);
+                                if(meleeTowerVec[index]->get_count() == 2)
+                                {
+                                    select.set_gray(0, true); //词缀灰度显示
+                                    select.set_gray(1, true);
+                                    select.set_gray(2, true);
+                                }
                                 break;
                             }
                     }
@@ -437,12 +515,13 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
             {
                 if(map(p.x, p.y) == REMOTETOWER_VALUE) //路径点已存在远程塔
                 {
-                    int index = 0;
-                    for(auto tower = remoteTowerVec.begin(); tower != remoteTowerVec.end(); ++tower)
-                        if((*tower)->get_x() == p.x && (*tower)->get_y() == p.y)
+                    for(int index = 0; index < remoteTowerVec.size(); ++index)
+                        if(remoteTowerVec[index]->get_x() == p.x && remoteTowerVec[index]->get_y() == p.y)
                         {
-                            select.change(REMOTETOWER_VALUE, (*tower)->get_pos(), index); //换显示框内容
+                            select.change(REMOTETOWER_VALUE, remoteTowerVec[index]->get_pos(), index); //换显示框内容
                             select.set_display(true);
+                            if(remoteTowerVec[index]->get_count() == 2)
+                                select.set_gray(0, true); //词缀灰度显示
                             break;
                         }
                 }

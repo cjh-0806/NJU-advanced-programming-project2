@@ -57,8 +57,11 @@ public:
     void add_count() { affixCount++; }
     void dec_count() { affixCount--; }
     void add_rage();
+    void dec_rage();
     void add_frozen();
+    void dec_frozen();
     void add_aoe();
+    void dec_aoe();
 };
 
 class RemoteTower: public Unit //远程塔
@@ -73,6 +76,7 @@ public:
     void add_count() { affixCount++; }
     void dec_count() { affixCount--; }
     void add_bleed();
+    void dec_bleed();
 };
 
 #endif // UNIT_H

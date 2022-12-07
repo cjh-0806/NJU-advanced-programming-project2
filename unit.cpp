@@ -66,14 +66,29 @@ void MeleeTower::add_rage()
     rage = true;
 }
 
+void MeleeTower::dec_rage()
+{
+    rage = false;
+}
+
 void MeleeTower::add_frozen()
 {
     frozen = true;
 }
 
+void MeleeTower::dec_frozen()
+{
+    frozen = false;
+}
+
 void MeleeTower::add_aoe()
 {
     aoe = true;
+}
+
+void MeleeTower::dec_aoe()
+{
+    aoe = false;
 }
 
 RemoteTower::RemoteTower(int x, int y, int _hp, int _atk, int _range, QString _path)
@@ -86,4 +101,9 @@ RemoteTower::RemoteTower(int x, int y, int _hp, int _atk, int _range, QString _p
 void RemoteTower::add_bleed()
 {
     bleed = true;
+}
+
+void RemoteTower::dec_bleed()
+{
+    bleed = false;
 }
