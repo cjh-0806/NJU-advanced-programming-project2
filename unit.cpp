@@ -36,6 +36,7 @@ Enemy::Enemy(int _hp, int _atk, int _range, QString _path, QVector<Position> p)
     : Unit(p[0].x, p[0].y, _hp, _atk, _range, _path)
 {
     enemyRoad = p;
+    frozen = bleed = false;
 }
 
 bool Enemy::move(const Map& map)
@@ -64,11 +65,15 @@ MeleeTower::MeleeTower(int x, int y, int _hp, int _atk, int _range, QString _pat
 void MeleeTower::add_rage()
 {
     rage = true;
+    range *= 2;
+    atk *= 2;
 }
 
 void MeleeTower::dec_rage()
 {
     rage = false;
+    range /= 2;
+    atk /= 2;
 }
 
 void MeleeTower::add_frozen()

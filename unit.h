@@ -35,10 +35,19 @@ public:
 class Enemy: public Unit //敌人
 {
     QVector<Position> enemyRoad; //敌人经过路径
+    bool frozen; //是否被冰冻
+    bool bleed; //是否被放血
 public:
+    int frozenTimer = 0;
+    int bleedTimer = 0;
     Enemy(int _hp, int _atk, int _range, QString _path, QVector<Position> p);
-
     bool move(const Map& map);
+
+    bool get_frozen() const { return frozen; }
+    bool get_bleed() const { return bleed; }
+
+    void set_frozen(bool b) { frozen = b; }
+    void set_bleed(bool b) { bleed = b; }
 };
 
 class MeleeTower: public Unit //近战塔

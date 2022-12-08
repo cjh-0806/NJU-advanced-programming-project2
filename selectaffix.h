@@ -17,7 +17,6 @@ class SelectAffix
     int length;
     int height;
     Position pos;
-    bool* gray; //灰色
 
 public:
     QString* affixPaths;
@@ -27,7 +26,6 @@ public:
     int get_type() const { return type; }
     int get_index() const { return index; }
     bool get_display() const { return display; }
-    bool get_gray(int i) const { return gray[i]; }
 
     Position get_pos() const { return pos; }
     int get_x() const { return pos.x; }
@@ -37,7 +35,6 @@ public:
     int get_height() const { return height; }
 
     void set_display(bool d) { display = d; }
-    void set_gray(int i, bool g) { gray[i] = g; }
 };
 
 #endif // SELECTAFFIX_H
