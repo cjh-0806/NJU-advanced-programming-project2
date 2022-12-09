@@ -55,6 +55,13 @@ bool Enemy::move(const Map& map)
     return true;
 }
 
+void Enemy::dec_hp()
+{
+    hp -= 5;
+    if(hp <= 0)
+        alive = false;
+}
+
 MeleeTower::MeleeTower(int x, int y, int _hp, int _atk, int _range, QString _path)
     : Unit(x, y, _hp, _atk, _range, _path)
 {

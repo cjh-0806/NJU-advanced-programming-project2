@@ -13,5 +13,6 @@
         <file>pictures/affix5.jpg</file>
         <file>pictures/unload.jpg</file>
         <file>pictures/frozen.jpg</file>
+        <file>pictures/bleed.jpg</file>
     </qresource>
 </RCC>

@@ -48,6 +48,7 @@ public:
 
     void set_frozen(bool b) { frozen = b; }
     void set_bleed(bool b) { bleed = b; }
+    void dec_hp();
 };
 
 class MeleeTower: public Unit //近战塔

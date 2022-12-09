@@ -72,16 +72,22 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
         for(auto tower : meleeTowerVec)
             for(auto enemy = enemyVec.begin(); enemy != enemyVec.end(); )
             {
-                if(tower->attack(*enemy) && tower->get_frozen() && !(*enemy)->get_frozen()) //带冰系词缀的近战塔攻击到了敌人
-                    (*enemy)->set_frozen(true);
-                if(!(*enemy)->isAlive()) //敌人死亡，删去这个敌人，掉落词缀，加金币
+                bool res = tower->attack(*enemy);
+                if(res) //攻击有效
                 {
-                    money += 20;
-                    moneyLabel->setText("金币数：" + QString::number(money));
-                    int index = rand() % 4; //随机掉落我方词缀
-                    affixArr[index]++;
-                    //showTip(*enemy);
-                    enemyVec.erase(enemy);
+                    if(tower->get_frozen() && !(*enemy)->get_frozen()) //冰冻效果
+                        (*enemy)->set_frozen(true);
+                    if(!(*enemy)->isAlive()) //敌人死亡，删去这个敌人，掉落词缀，加金币
+                    {
+                        money += 20;
+                        moneyLabel->setText("金币数：" + QString::number(money));
+                        int index = rand() % 4; //随机掉落我方词缀
+                        affixArr[index]++;
+                        //showTip(*enemy);
+                        enemyVec.erase(enemy);
+                    }
+                    if(!tower->get_aoe()) //未安装群伤词缀，一次只攻击一个敌人
+                        break;
                 }
                 else enemy++;
             }
@@ -90,7 +96,38 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
         for(auto tower : remoteTowerVec)
             for(auto enemy = enemyVec.begin(); enemy != enemyVec.end(); )
             {
-                tower->attack(*enemy);
+                bool res = tower->attack(*enemy);
+                if(res) //攻击有效
+                {
+                    if(tower->get_bleed() && !(*enemy)->get_bleed()) //放血效果
+                        (*enemy)->set_bleed(true);
+                    if(!(*enemy)->isAlive()) //敌人死亡，删去这个敌人，掉落词缀，加金币
+                    {
+                        money += 20;
+                        moneyLabel->setText("金币数：" + QString::number(money));
+                        int index = rand() % 4; //随机掉落我方词缀
+                        affixArr[index]++;
+                        //showTip(*enemy);
+                        enemyVec.erase(enemy);
+                    }
+                    break; //一次只攻击一个敌人
+                }
+                else enemy++;
+            }
+
+        //敌人移动
+        for(auto enemy = enemyVec.begin(); enemy != enemyVec.end(); )
+        {
+            if((*enemy)->get_bleed()) //被放血
+            {
+                (*enemy)->bleedTimer++;
+                (*enemy)->dec_hp();
+                if((*enemy)->bleedTimer == 4) //已经被放血了四个时间单位，取消放血效果
+                {
+                    (*enemy)->bleedTimer = 0;
+                    (*enemy)->set_bleed(false);
+                    qDebug() << "取消放血效果";
+                }
                 if(!(*enemy)->isAlive()) //敌人死亡，删去这个敌人，掉落词缀，加金币
                 {
                     money += 20;
@@ -99,13 +136,9 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                     affixArr[index]++;
                     //showTip(*enemy);
                     enemyVec.erase(enemy);
+                    continue;
                 }
-                else enemy++;
             }
-
-        //敌人移动
-        for(auto enemy = enemyVec.begin(); enemy != enemyVec.end(); )
-        {
             if((*enemy)->get_frozen()) //被冰冻
             {
                 (*enemy)->frozenTimer++;
@@ -116,8 +149,9 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                     qDebug() << "取消冰冻效果";
                 }
                 enemy++;
+                continue;
             }
-            else if((*enemy)->isAlive() && !(*enemy)->move(map)) //敌人走到路径尽头，删去这个敌人，生命值-1
+            if(!(*enemy)->move(map)) //敌人走到路径尽头，删去这个敌人，生命值-1
             {
                 enemyVec.erase(enemy);
                 life--;
@@ -222,6 +256,19 @@ void MapWidget::drawEnemy(QPainter& painter) //画出敌人
             if(enemy->get_frozen()) //添加冰冻效果
             {
                 QPixmap pix1(":/pictures/frozen.jpg");
+                QPixmap pix2(pix1.size());
+                pix2.fill(Qt::transparent);
+                QPainter temp(&pix2);
+                temp.setCompositionMode(QPainter::CompositionMode_Source);
+                temp.drawPixmap(0, 0, pix1);
+                temp.setCompositionMode(QPainter::CompositionMode_DestinationIn);
+                temp.fillRect(pix2.rect(), QColor(0, 0, 0, 125)); //根据QColor中第四个参数设置透明度，0～255
+                temp.end();
+                painter.drawPixmap(x, y, 0.8*UNIT_LENGTH, 0.8*UNIT_LENGTH, pix2);
+            }
+            if(enemy->get_bleed()) //添加放血效果
+            {
+                QPixmap pix1(":/pictures/bleed.jpg");
                 QPixmap pix2(pix1.size());
                 pix2.fill(Qt::transparent);
                 QPainter temp(&pix2);
