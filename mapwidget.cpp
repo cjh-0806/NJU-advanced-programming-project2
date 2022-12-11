@@ -100,6 +100,7 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
 
         //远程防御塔攻击
         attackVec.clear();
+        srand((unsigned)time(NULL));
         for(auto tower : remoteTowerVec)
             for(auto enemy = enemyVec.begin(); enemy != enemyVec.end(); )
             {
@@ -265,7 +266,7 @@ void MapWidget::drawEnemy(QPainter& painter) //画出敌人
             painter.drawPixmap(x, y, 0.8*UNIT_LENGTH, 0.8*UNIT_LENGTH, enemy->get_path());
             if(enemy->get_frozen()) //添加冰冻效果
             {
-                QPixmap pix1(":/pictures/frozen.jpg");
+                QPixmap pix1(":/pictures/frozen.png");
                 QPixmap pix2(pix1.size());
                 pix2.fill(Qt::transparent);
                 QPainter temp(&pix2);
@@ -278,7 +279,7 @@ void MapWidget::drawEnemy(QPainter& painter) //画出敌人
             }
             if(enemy->get_bleed()) //添加放血效果
             {
-                QPixmap pix1(":/pictures/bleed.jpg");
+                QPixmap pix1(":/pictures/bleed.png");
                 QPixmap pix2(pix1.size());
                 pix2.fill(Qt::transparent);
                 QPainter temp(&pix2);

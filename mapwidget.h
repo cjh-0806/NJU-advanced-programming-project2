@@ -27,11 +27,11 @@
 
 #define GRASS_PATH ":/pictures/green.jpg"
 #define ROAD_PATH ":/pictures/brown.jpg"
-#define ENEMY_PATH ":/pictures/enemy.jpg"
-#define ENEMY1_PATH ":/pictures/enemy1.jpg"
-#define ENEMY2_PATH ":/pictures/enemy2.jpg"
-#define MELEETOWER_PATH ":/pictures/tower1.jpg"
-#define REMOTETOWER_PATH ":/pictures/tower2.jpg"
+#define ENEMY_PATH ":/pictures/enemy.png"
+#define ENEMY1_PATH ":/pictures/enemy1.png"
+#define ENEMY2_PATH ":/pictures/enemy2.png"
+#define MELEETOWER_PATH ":/pictures/tower1.png"
+#define REMOTETOWER_PATH ":/pictures/tower2.png"
 
 class Attack
 {

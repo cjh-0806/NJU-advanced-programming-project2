@@ -2,7 +2,6 @@
     <qresource prefix="/">
         <file>pictures/green.jpg</file>
         <file>pictures/brown.jpg</file>
-        <file>pictures/tower2.jpg</file>
         <file>pictures/affix0.jpg</file>
         <file>pictures/affix1.jpg</file>
         <file>pictures/affix2.jpg</file>
@@ -10,11 +9,12 @@
         <file>pictures/affix4.jpg</file>
         <file>pictures/affix5.jpg</file>
         <file>pictures/unload.jpg</file>
-        <file>pictures/frozen.jpg</file>
-        <file>pictures/bleed.jpg</file>
-        <file>pictures/enemy.jpg</file>
-        <file>pictures/enemy1.jpg</file>
-        <file>pictures/enemy2.jpg</file>
-        <file>pictures/tower1.jpg</file>
+        <file>pictures/tower1.png</file>
+        <file>pictures/tower2.png</file>
+        <file>pictures/enemy.png</file>
+        <file>pictures/enemy1.png</file>
+        <file>pictures/enemy2.png</file>
+        <file>pictures/bleed.png</file>
+        <file>pictures/frozen.png</file>
     </qresource>
 </RCC>
