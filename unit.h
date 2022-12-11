@@ -3,8 +3,6 @@
 
 #include "map.h"
 
-#define UNIT_SPEED 100
-
 class Unit //单位基类
 {
 protected:
@@ -37,10 +35,13 @@ class Enemy: public Unit //敌人
     QVector<Position> enemyRoad; //敌人经过路径
     bool frozen; //是否被冰冻
     bool bleed; //是否被放血
+    bool flash; //是否携带闪现词缀
+    bool speedup; //是否携带神速词缀
 public:
-    int frozenTimer = 0;
-    int bleedTimer = 0;
-    Enemy(int _hp, int _atk, int _range, QString _path, QVector<Position> p);
+    int frozenTimer;
+    int bleedTimer;
+    int flashTimer;
+    Enemy(int _hp, int _atk, int _range, QString _path, QVector<Position> p, bool f, bool s);
     bool move(const Map& map);
 
     bool get_frozen() const { return frozen; }

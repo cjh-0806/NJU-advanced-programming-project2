@@ -32,11 +32,14 @@ void Unit::hurted(Unit* attacker)
         alive = false;
 }
 
-Enemy::Enemy(int _hp, int _atk, int _range, QString _path, QVector<Position> p)
+Enemy::Enemy(int _hp, int _atk, int _range, QString _path, QVector<Position> p, bool f, bool s)
     : Unit(p[0].x, p[0].y, _hp, _atk, _range, _path)
 {
     enemyRoad = p;
     frozen = bleed = false;
+    flash = f;
+    speedup = s;
+    frozenTimer = bleedTimer = flashTimer = 0;
 }
 
 bool Enemy::move(const Map& map)
@@ -47,11 +50,37 @@ bool Enemy::move(const Map& map)
         return false;
     }
     if(map(enemyRoad[0].x, enemyRoad[0].y) == MELEETOWER_VALUE)
-        return true;
+    {
+        if(!flash) //没有闪现词缀
+            return true;
+        else //携带闪现词缀，越过近战塔
+        {
+            pos.x = enemyRoad[0].x;
+            pos.y = enemyRoad[0].y;
+            enemyRoad.erase(enemyRoad.begin()); //删去路径初始点
+            if(enemyRoad.empty()) //走到路径尽头
+            {
+                alive = false;
+                return false;
+            }
+        }
+    }
     //更新坐标
     pos.x = enemyRoad[0].x;
     pos.y = enemyRoad[0].y;
     enemyRoad.erase(enemyRoad.begin()); //删去路径初始点
+    if(speedup) //携带神速词缀，再走一格
+    {
+        if(enemyRoad.empty()) //走到路径尽头
+        {
+            alive = false;
+            return false;
+        }
+        //更新坐标
+        pos.x = enemyRoad[0].x;
+        pos.y = enemyRoad[0].y;
+        enemyRoad.erase(enemyRoad.begin()); //删去路径初始点
+    }
     return true;
 }
 

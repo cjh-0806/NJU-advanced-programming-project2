@@ -54,7 +54,13 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
         if(enemyCount < ENEMY_MAX_NUM)
         {
             int index = rand() % map.get_num(); //随机选择一条路径作为敌人路径
-            enemyVec.push_back(new Enemy(100, 20, 1, ENEMY1_PATH, map.get_road(index)));
+            int enemyType = rand() % 3;
+            if(enemyType == 0)
+                enemyVec.push_back(new Enemy(100, 20, 1, ENEMY_PATH, map.get_road(index), false, false));
+            else if(enemyType == 1)
+                enemyVec.push_back(new Enemy(100, 20, 1, ENEMY1_PATH, map.get_road(index), true, false));
+            else
+                enemyVec.push_back(new Enemy(100, 20, 1, ENEMY2_PATH, map.get_road(index), false, true));
             enemyCount++;
         }
         if(life > 0 && enemyCount == ENEMY_MAX_NUM && enemyVec.empty()) //击败所有敌人，游戏成功
