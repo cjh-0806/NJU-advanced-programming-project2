@@ -33,6 +33,19 @@
 #define MELEETOWER_PATH ":/pictures/tower1.jpg"
 #define REMOTETOWER_PATH ":/pictures/tower2.jpg"
 
+class Attack
+{
+public:
+    RemoteTower* tower;
+    Enemy* enemy;
+public:
+    Attack(RemoteTower* _tower, Enemy* _enemy)
+    {
+        tower = _tower;
+        enemy = _enemy;
+    }
+};
+
 namespace Ui {
 class MapWidget;
 }
@@ -52,6 +65,7 @@ public:
     void drawRemoteTower(QPainter&); //画出远程塔
     void drawAffix(QPainter&); //画出词缀库
     void drawSelectAffix(QPainter&); //画出词缀选择框
+    void drawAttack(QPainter&); //画出远程塔攻击效果
 
     void mousePressEvent(QMouseEvent*); //鼠标点击事件
     void showTip(Enemy* e);
@@ -73,6 +87,8 @@ private:
     QVector<MeleeTower*> meleeTowerVec; //近战塔数组
     QVector<RemoteTower*> remoteTowerVec; //远程塔数组
     QVector<Enemy*> enemyVec; //敌人数组
+    QVector<Attack*> attackVec;
+
     int enemyCount; //敌人数量
 
     QTimer* enemyTimer; //产生敌人的计时器

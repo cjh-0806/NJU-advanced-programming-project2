@@ -99,6 +99,7 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
             }
 
         //远程防御塔攻击
+        attackVec.clear();
         for(auto tower : remoteTowerVec)
             for(auto enemy = enemyVec.begin(); enemy != enemyVec.end(); )
             {
@@ -116,6 +117,8 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                         //showTip(*enemy);
                         enemyVec.erase(enemy);
                     }
+                    else
+                        attackVec.push_back(new Attack(tower, *enemy));
                     break; //一次只攻击一个敌人
                 }
                 else enemy++;
@@ -233,6 +236,7 @@ void MapWidget::paintEvent(QPaintEvent*)
     drawRemoteTower(painter);
     drawAffix(painter);
     drawSelectAffix(painter);
+    drawAttack(painter);
 }
 
 void MapWidget::drawMap(QPainter& painter) //画出地图
@@ -411,6 +415,21 @@ void MapWidget::drawSelectAffix(QPainter& painter) //画出词缀选择框
     }
 }
 
+void MapWidget::drawAttack(QPainter &painter) //画出远程塔攻击效果
+{
+    for(auto a: attackVec)
+    {
+        if(a->enemy->isAlive() && a->tower->inRange(a->enemy->get_pos()))
+        {
+            int x1 = (a->tower->get_x()+0.5) * UNIT_LENGTH;
+            int y1 = (a->tower->get_y()+0.5) * UNIT_LENGTH;
+            int x2 = (a->enemy->get_x()+0.5) * UNIT_LENGTH;
+            int y2 = (a->enemy->get_y()+0.5) * UNIT_LENGTH;
+            painter.setPen(QPen(Qt::darkMagenta, 4));//设置画笔形式
+            painter.drawLine(x1, y1, x2, y2);
+        }
+    }
+}
 
 void MapWidget::mousePressEvent(QMouseEvent* event)
 {
