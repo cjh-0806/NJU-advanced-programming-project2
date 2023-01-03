@@ -13,25 +13,44 @@ Map::Map() //默认地图
         for(j = 0; j < n; ++j)
             mapMatrix[i][j] = GRASS_VALUE;
     //添加路径
-    QVector<Position> road;
-    Position p1(11, 5); road.push_back(p1);
-    Position p2(10, 5); road.push_back(p2);
-    Position p3(10, 6); road.push_back(p3);
-    Position p4(9, 6); road.push_back(p4);
-    Position p5(8, 6); road.push_back(p5);
-    Position p6(7, 6); road.push_back(p6);
-    Position p7(7, 5); road.push_back(p7);
-    Position p8(7, 4); road.push_back(p8);
-    Position p9(6, 4); road.push_back(p9);
-    Position p10(5, 4); road.push_back(p10);
-    Position p11(4, 4); road.push_back(p11);
-    Position p12(4, 5); road.push_back(p12);
-    Position p13(4, 6); road.push_back(p13);
-    Position p14(3, 6); road.push_back(p14);
-    Position p15(2, 6); road.push_back(p15);
-    Position p16(1, 6); road.push_back(p16);
-    Position p17(0, 6); road.push_back(p17);
-    roads.push_back(road);
+    QVector<Position> road1;
+    road1.push_back(Position(11, 5));
+    road1.push_back(Position(10, 5));
+    road1.push_back(Position(10, 6));
+    road1.push_back(Position(9, 6));
+    road1.push_back(Position(8, 6));
+    road1.push_back(Position(7, 6));
+    road1.push_back(Position(7, 5));
+    road1.push_back(Position(7, 4));
+    road1.push_back(Position(6, 4));
+    road1.push_back(Position(5, 4));
+    road1.push_back(Position(4, 4));
+    road1.push_back(Position(4, 5));
+    road1.push_back(Position(4, 6));
+    road1.push_back(Position(3, 6));
+    road1.push_back(Position(2, 6));
+    road1.push_back(Position(1, 6));
+    road1.push_back(Position(0, 6));
+    roads.push_back(road1);
+    QVector<Position> road2;
+    road2.push_back(Position(11, 2));
+    road2.push_back(Position(10, 2));
+    road2.push_back(Position(9, 2));
+    road2.push_back(Position(9, 1));
+    road2.push_back(Position(9, 0));
+    road2.push_back(Position(8, 0));
+    road2.push_back(Position(7, 0));
+    road2.push_back(Position(7, 1));
+    road2.push_back(Position(7, 2));
+    road2.push_back(Position(6, 2));
+    road2.push_back(Position(5, 2));
+    road2.push_back(Position(4, 2));
+    road2.push_back(Position(3, 2));
+    road2.push_back(Position(2, 2));
+    road2.push_back(Position(1, 2));
+    road2.push_back(Position(1, 1));
+    road2.push_back(Position(1, 0));
+    roads.push_back(road2);
     //路径节点设为1
     for(i = 0; i < (int)roads.size(); ++i)
         for(j = 0; j < (int)roads[i].size(); ++j)
@@ -73,6 +92,7 @@ void Map::file2map(const char *src)
         for(j = 0; j < n; ++j)
             mapMatrix[i][j] = GRASS_VALUE;
     string line;
+    getline(fin, line);
     while(getline(fin, line)) //读取一行路径存放到line变量中
     {
         QVector<Position> road;

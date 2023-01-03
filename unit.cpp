@@ -32,14 +32,15 @@ void Unit::hurted(Unit* attacker)
         alive = false;
 }
 
+
 Enemy::Enemy(int _hp, int _atk, int _range, QString _path, QVector<Position> p, bool f, bool s)
     : Unit(p[0].x, p[0].y, _hp, _atk, _range, _path)
 {
     enemyRoad = p;
-    frozen = bleed = false;
+    frozen = bleed = weaken = false;
     flash = f;
     speedup = s;
-    frozenTimer = bleedTimer = flashTimer = 0;
+    frozenTimer = bleedTimer = flashTimer = weakenTimer = 0;
 }
 
 bool Enemy::move(const Map& map)
@@ -91,11 +92,13 @@ void Enemy::dec_hp()
         alive = false;
 }
 
+
 MeleeTower::MeleeTower(int x, int y, int _hp, int _atk, int _range, QString _path)
     : Unit(x, y, _hp, _atk, _range, _path)
 {
     affixCount = 0;
-    rage = frozen = aoe = false;
+    rage = frozen = aoe = avoid = false;
+    avoidTimer = 0;
 }
 
 void MeleeTower::add_rage()
@@ -112,39 +115,28 @@ void MeleeTower::dec_rage()
     atk /= 2;
 }
 
-void MeleeTower::add_frozen()
-{
-    frozen = true;
-}
+void MeleeTower::add_frozen() { frozen = true; }
+void MeleeTower::dec_frozen() { frozen = false; }
 
-void MeleeTower::dec_frozen()
-{
-    frozen = false;
-}
+void MeleeTower::add_aoe() { aoe = true; }
+void MeleeTower::dec_aoe() { aoe = false; }
 
-void MeleeTower::add_aoe()
-{
-    aoe = true;
-}
+void MeleeTower::add_avoid() { avoid = true; }
+void MeleeTower::dec_avoid() { avoid = false; }
 
-void MeleeTower::dec_aoe()
-{
-    aoe = false;
-}
 
 RemoteTower::RemoteTower(int x, int y, int _hp, int _atk, int _range, QString _path)
     : Unit(x, y, _hp, _atk, _range, _path)
 {
     affixCount = 0;
-    bleed = false;
+    aoe = bleed = weaken = false;
 }
 
-void RemoteTower::add_bleed()
-{
-    bleed = true;
-}
+void RemoteTower::add_aoe() { aoe = true; }
+void RemoteTower::dec_aoe() { aoe = false; }
 
-void RemoteTower::dec_bleed()
-{
-    bleed = false;
-}
+void RemoteTower::add_bleed() { bleed = true; }
+void RemoteTower::dec_bleed() { bleed = false; }
+
+void RemoteTower::add_weaken() { weaken = true; }
+void RemoteTower::dec_weaken() { weaken = false; }

@@ -35,20 +35,24 @@ class Enemy: public Unit //敌人
     QVector<Position> enemyRoad; //敌人经过路径
     bool frozen; //是否被冰冻
     bool bleed; //是否被放血
+    bool weaken; //是否被弱化
     bool flash; //是否携带闪现词缀
     bool speedup; //是否携带神速词缀
 public:
     int frozenTimer;
     int bleedTimer;
+    int weakenTimer;
     int flashTimer;
     Enemy(int _hp, int _atk, int _range, QString _path, QVector<Position> p, bool f, bool s);
     bool move(const Map& map);
 
     bool get_frozen() const { return frozen; }
     bool get_bleed() const { return bleed; }
+    bool get_weaken() const { return weaken; }
 
     void set_frozen(bool b) { frozen = b; }
     void set_bleed(bool b) { bleed = b; }
+    void set_weaken(bool b) { weaken = b; }
     void dec_hp();
 };
 
@@ -58,12 +62,15 @@ class MeleeTower: public Unit //近战塔
     bool rage;
     bool frozen;
     bool aoe;
+    bool avoid;
 public:
+    int avoidTimer;
     MeleeTower(int x, int y, int _hp, int _atk, int _range, QString _path);
     int get_count() const { return affixCount; }
     bool get_rage() const { return rage; }
     bool get_frozen() const { return frozen; }
     bool get_aoe() const { return aoe; }
+    bool get_avoid() const { return avoid; }
 
     void add_count() { affixCount++; }
     void dec_count() { affixCount--; }
@@ -73,21 +80,31 @@ public:
     void dec_frozen();
     void add_aoe();
     void dec_aoe();
+    void add_avoid();
+    void dec_avoid();
 };
 
 class RemoteTower: public Unit //远程塔
 {
     int affixCount;
+    bool aoe;
     bool bleed;
+    bool weaken;
 public:
     RemoteTower(int x, int y, int _hp, int _atk, int _range, QString _path);
     int get_count() const { return affixCount; }
+    bool get_aoe() const { return aoe; }
     bool get_bleed() const { return bleed; }
+    bool get_weaken() const { return weaken; }
 
     void add_count() { affixCount++; }
     void dec_count() { affixCount--; }
+    void add_aoe();
+    void dec_aoe();
     void add_bleed();
     void dec_bleed();
+    void add_weaken();
+    void dec_weaken();
 };
 
 #endif // UNIT_H

@@ -16,18 +16,21 @@ void SelectAffix::change(int n, Position towerPos, int i)
     pos = Position(towerPos.x*UNIT_LENGTH, max(0.0, (towerPos.y-0.5)*UNIT_LENGTH));
     if(type == MELEETOWER_VALUE)
     {
-        length = UNIT_LENGTH*2;
-        affixPaths = new QString[4];
+        length = UNIT_LENGTH*2.5;
+        affixPaths = new QString[5];
         affixPaths[0] = ":/pictures/affix0.jpg";
         affixPaths[1] = ":/pictures/affix1.jpg";
         affixPaths[2] = ":/pictures/affix2.jpg";
-        affixPaths[3] = ":/pictures/unload.jpg";
+        affixPaths[3] = ":/pictures/affix3.jpg";
+        affixPaths[4] = ":/pictures/unload.jpg";
     }
     else
     {
-        length = UNIT_LENGTH;
-        affixPaths = new QString[2];
-        affixPaths[0] = ":/pictures/affix3.jpg";
-        affixPaths[1] = ":/pictures/unload.jpg";
+        length = UNIT_LENGTH*2;
+        affixPaths = new QString[4];
+        affixPaths[0] = ":/pictures/affix2.jpg";
+        affixPaths[1] = ":/pictures/affix4.jpg";
+        affixPaths[2] = ":/pictures/affix5.jpg";
+        affixPaths[3] = ":/pictures/unload.jpg";
     }
 }

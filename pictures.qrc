@@ -16,5 +16,6 @@
         <file>pictures/enemy2.png</file>
         <file>pictures/bleed.png</file>
         <file>pictures/frozen.png</file>
+        <file>pictures/avoid.png</file>
     </qresource>
 </RCC>

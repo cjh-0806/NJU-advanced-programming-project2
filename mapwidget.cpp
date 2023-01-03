@@ -44,13 +44,23 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
     for(int i = 0; i < 6; ++i)
         affixArr[i] = 0; //每个词缀数量为0
 
+    //金币增加的计时器
+    moneyTimer = new QTimer(this);
+    moneyTimer->setInterval(1000);
+    moneyTimer->start();
+    connect(moneyTimer, &QTimer::timeout, [&]()
+    {
+        money += 5;
+        moneyLabel->setText("金币数：" + QString::number(money));
+    });
+
     //产生敌人的计时器
+    srand((unsigned)time(NULL));
     enemyTimer = new QTimer(this);
-    enemyTimer->setInterval(2000);
+    enemyTimer->setInterval(3000);
     enemyTimer->start();
     connect(enemyTimer, &QTimer::timeout, [&]()
     {
-        srand((unsigned)time(NULL));
         if(enemyCount < ENEMY_MAX_NUM)
         {
             int index = rand() % map.get_num(); //随机选择一条路径作为敌人路径
@@ -87,7 +97,7 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                     {
                         money += 20;
                         moneyLabel->setText("金币数：" + QString::number(money));
-                        int index = rand() % 4; //随机掉落我方词缀
+                        int index = rand() % 6; //随机掉落我方词缀
                         affixArr[index]++;
                         //showTip(*enemy);
                         enemyVec.erase(enemy);
@@ -100,7 +110,6 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
 
         //远程防御塔攻击
         attackVec.clear();
-        srand((unsigned)time(NULL));
         for(auto tower : remoteTowerVec)
             for(auto enemy = enemyVec.begin(); enemy != enemyVec.end(); )
             {
@@ -113,13 +122,13 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                     {
                         money += 20;
                         moneyLabel->setText("金币数：" + QString::number(money));
-                        int index = rand() % 4; //随机掉落我方词缀
+                        int index = rand() % 6; //随机掉落我方词缀
                         affixArr[index]++;
                         //showTip(*enemy);
                         enemyVec.erase(enemy);
                     }
                     else
-                        attackVec.push_back(new Attack(tower, *enemy));
+                        attackVec.push_back(new AttackEffect(tower, *enemy));
                     break; //一次只攻击一个敌人
                 }
                 else enemy++;
@@ -142,7 +151,7 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                 {
                     money += 20;
                     moneyLabel->setText("金币数：" + QString::number(money));
-                    int index = rand() % 4; //随机掉落我方词缀
+                    int index = rand() % 6; //随机掉落我方词缀
                     affixArr[index]++;
                     //showTip(*enemy);
                     enemyVec.erase(enemy);
@@ -203,6 +212,7 @@ void MapWidget::closeEvent(QCloseEvent* event)
 {
     enemyTimer->stop();
     gameTimer->stop();
+    moneyTimer->stop();
     if(life == 0)
     {
         QMessageBox::information(this, "结束", "游戏失败！");
@@ -223,6 +233,7 @@ void MapWidget::closeEvent(QCloseEvent* event)
         {
             enemyTimer->start();
             gameTimer->start();
+            moneyTimer->start();
             event->ignore();
         }
     }
@@ -237,7 +248,7 @@ void MapWidget::paintEvent(QPaintEvent*)
     drawRemoteTower(painter);
     drawAffix(painter);
     drawSelectAffix(painter);
-    drawAttack(painter);
+    drawAttackEffect(painter);
 }
 
 void MapWidget::drawMap(QPainter& painter) //画出地图
@@ -344,9 +355,9 @@ void MapWidget::drawAffix(QPainter& painter) //画出词缀库
         case 0:painter.drawText(x, y + 0.8*UNIT_LENGTH, "狂暴：" + QString::number(affixArr[i])); break;
         case 1:painter.drawText(x, y + 0.8*UNIT_LENGTH, "冰系：" + QString::number(affixArr[i])); break;
         case 2:painter.drawText(x, y + 0.8*UNIT_LENGTH, "群伤：" + QString::number(affixArr[i])); break;
-        case 3:painter.drawText(x, y + 0.8*UNIT_LENGTH, "放血：" + QString::number(affixArr[i])); break;
-        case 4:painter.drawText(x, y + 0.8*UNIT_LENGTH, "闪现：" + QString::number(affixArr[i])); break;
-        case 5:painter.drawText(x, y + 0.8*UNIT_LENGTH, "神速：" + QString::number(affixArr[i])); break;
+        case 3:painter.drawText(x, y + 0.8*UNIT_LENGTH, "免伤：" + QString::number(affixArr[i])); break;
+        case 4:painter.drawText(x, y + 0.8*UNIT_LENGTH, "放血：" + QString::number(affixArr[i])); break;
+        case 5:painter.drawText(x, y + 0.8*UNIT_LENGTH, "弱化：" + QString::number(affixArr[i])); break;
         }
         y += UNIT_LENGTH;
     }
@@ -358,7 +369,7 @@ void MapWidget::drawSelectAffix(QPainter& painter) //画出词缀选择框
         return;
     if(select.get_type() == MELEETOWER_VALUE) //近战塔
     {
-        bool setAffix[3] = {false, false, false};
+        bool setAffix[4] = {false, false, false, false};
         //已安装这类词缀在上方显示√
         if(meleeTowerVec[select.get_index()]->get_rage())
         {
@@ -375,8 +386,13 @@ void MapWidget::drawSelectAffix(QPainter& painter) //画出词缀选择框
             painter.drawText(select.get_x()+2*select.get_height(), select.get_y()-10, "√");
             setAffix[2] = true;
         }
+        if(meleeTowerVec[select.get_index()]->get_avoid())
+        {
+            painter.drawText(select.get_x()+3*select.get_height(), select.get_y()-10, "√");
+            setAffix[3] = true;
+        }
         //显示词缀图片
-        for(int i = 0; i < 3; ++i)
+        for(int i = 0; i < 4; ++i)
         {
             if((meleeTowerVec[select.get_index()]->get_count() == 2) || //词缀槽已满
               (meleeTowerVec[select.get_index()]->get_count() < 2 && (setAffix[i] == true || affixArr[i] == 0))) //已安装词缀或词缀库里无该词缀
@@ -391,32 +407,51 @@ void MapWidget::drawSelectAffix(QPainter& painter) //画出词缀选择框
             else
                 painter.drawPixmap(select.get_x()+i*select.get_height(), select.get_y(), select.get_height(), select.get_height(), select.affixPaths[i]);
         }
-        painter.drawPixmap(select.get_x()+select.get_height()*3, select.get_y(), select.get_height(), select.get_height(), select.affixPaths[3]);
+        painter.drawPixmap(select.get_x()+select.get_height()*4, select.get_y(), select.get_height(), select.get_height(), select.affixPaths[4]);
 
     }
     else //远程塔
     {
+        bool setAffix[3] = {false, false, false};
+        int affixIndex[3] = {2, 4, 5};
         //已安装这类词缀在上方显示√
-        if(remoteTowerVec[select.get_index()]->get_bleed())
+        if(remoteTowerVec[select.get_index()]->get_aoe())
+        {
             painter.drawText(select.get_x(), select.get_y()-10, "√");
-        //显示词缀图片
-        if(remoteTowerVec[select.get_index()]->get_bleed() || affixArr[3] == 0) //已安装词缀或词缀库里无该词缀
-        { //灰度显示
-            QImage *image = new QImage(select.affixPaths[0]);
-            QImage *gray_image = new QImage;
-            *gray_image = image->convertToFormat(QImage::Format_Grayscale8,Qt::AutoColor);
-            QPixmap *pixmap = new QPixmap();
-            pixmap->convertFromImage(*gray_image);
-            painter.drawPixmap(select.get_x(), select.get_y(), select.get_height(), select.get_height(), *pixmap);
+            setAffix[0] = true;
         }
-        else
-            painter.drawPixmap(select.get_x(), select.get_y(), select.get_height(), select.get_height(), select.affixPaths[0]);
-        painter.drawPixmap(select.get_x()+select.get_height(), select.get_y(), select.get_height(), select.get_height(), select.affixPaths[1]);
+        if(remoteTowerVec[select.get_index()]->get_bleed())
+        {
+            painter.drawText(select.get_x()+select.get_height(), select.get_y()-10, "√");
+            setAffix[1] = true;
+        }
+        if(remoteTowerVec[select.get_index()]->get_weaken())
+        {
+            painter.drawText(select.get_x()+2*select.get_height(), select.get_y()-10, "√");
+            setAffix[2] = true;
+        }
+        //显示词缀图片
+        for(int i = 0; i < 3; ++i)
+        {
+            if((remoteTowerVec[select.get_index()]->get_count() == 2) || //词缀槽已满
+              (remoteTowerVec[select.get_index()]->get_count() < 2 && (setAffix[i] == true || affixArr[affixIndex[i]] == 0))) //已安装词缀或词缀库里无该词缀
+            { //灰度显示
+                QImage *image = new QImage(select.affixPaths[i]);
+                QImage *gray_image = new QImage;
+                *gray_image = image->convertToFormat(QImage::Format_Grayscale8,Qt::AutoColor);
+                QPixmap *pixmap = new QPixmap();
+                pixmap->convertFromImage(*gray_image);
+                painter.drawPixmap(select.get_x()+i*select.get_height(), select.get_y(), select.get_height(), select.get_height(), *pixmap);
+            }
+            else
+                painter.drawPixmap(select.get_x()+i*select.get_height(), select.get_y(), select.get_height(), select.get_height(), select.affixPaths[i]);
+        }
+        painter.drawPixmap(select.get_x()+3*select.get_height(), select.get_y(), select.get_height(), select.get_height(), select.affixPaths[3]);
 
     }
 }
 
-void MapWidget::drawAttack(QPainter &painter) //画出远程塔攻击效果
+void MapWidget::drawAttackEffect(QPainter &painter) //画出远程塔攻击效果
 {
     for(auto a: attackVec)
     {
@@ -503,6 +538,25 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                     qDebug() << "卸下群伤词缀";
                 }
             }
+            else if(select.get_x() + select.get_height()*3 <= mx && mx < select.get_x() + select.get_height()*4) //免伤词缀
+            {
+                if(!meleeTowerVec[select.get_index()]->get_avoid())
+                {
+                    if(meleeTowerVec[select.get_index()]->get_count() < 2)
+                    {
+                        meleeTowerVec[select.get_index()]->add_avoid();
+                        meleeTowerVec[select.get_index()]->add_count();
+                        qDebug() << "安装免伤词缀";
+                        affixArr[3]--;
+                    }
+                }
+                else
+                {
+                    meleeTowerVec[select.get_index()]->dec_avoid();
+                    meleeTowerVec[select.get_index()]->dec_count();
+                    qDebug() << "卸下免伤词缀";
+                }
+            }
             else //撤销塔
             {
                 map.set_value(meleeTowerVec[select.get_index()]->get_x(), meleeTowerVec[select.get_index()]->get_y(), ROAD_VALUE);
@@ -515,7 +569,26 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
         }
         else //远程塔
         {
-            if(select.get_x() <= mx && mx < select.get_x() + select.get_height()) //放血词缀
+            if(select.get_x() <= mx && mx < select.get_x() + select.get_height()) //群伤词缀
+            {
+                if(!remoteTowerVec[select.get_index()]->get_aoe())
+                {
+                    if(remoteTowerVec[select.get_index()]->get_count() < 2)
+                    {
+                        remoteTowerVec[select.get_index()]->add_aoe();
+                        remoteTowerVec[select.get_index()]->add_count();
+                        qDebug() << "安装群伤词缀";
+                        affixArr[2]--;
+                    }
+                }
+                else
+                {
+                    remoteTowerVec[select.get_index()]->dec_aoe();
+                    remoteTowerVec[select.get_index()]->dec_count();
+                    qDebug() << "卸下群伤词缀";
+                }
+            }
+            else if(select.get_x() + select.get_height() <= mx && mx < select.get_x() + select.get_height()*2) //放血词缀
             {
                 if(!remoteTowerVec[select.get_index()]->get_bleed())
                 {
@@ -524,7 +597,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                         remoteTowerVec[select.get_index()]->add_bleed();
                         remoteTowerVec[select.get_index()]->add_count();
                         qDebug() << "安装放血词缀";
-                        affixArr[3]--;
+                        affixArr[4]--;
                     }
                 }
                 else
@@ -532,6 +605,25 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                     remoteTowerVec[select.get_index()]->dec_bleed();
                     remoteTowerVec[select.get_index()]->dec_count();
                     qDebug() << "卸下放血词缀";
+                }
+            }
+            else if(select.get_x() + select.get_height()*2 <= mx && mx < select.get_x() + select.get_height()*3) //弱化词缀
+            {
+                if(!remoteTowerVec[select.get_index()]->get_weaken())
+                {
+                    if(remoteTowerVec[select.get_index()]->get_count() < 2)
+                    {
+                        remoteTowerVec[select.get_index()]->add_weaken();
+                        remoteTowerVec[select.get_index()]->add_count();
+                        qDebug() << "安装弱化词缀";
+                        affixArr[5]--;
+                    }
+                }
+                else
+                {
+                    remoteTowerVec[select.get_index()]->dec_weaken();
+                    remoteTowerVec[select.get_index()]->dec_count();
+                    qDebug() << "卸下弱化词缀";
                 }
             }
             else //撤销塔

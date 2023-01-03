@@ -21,9 +21,9 @@
 #define RAGE_AFFIX 0 //狂暴词缀
 #define FROZEN_AFFIX 1 //冰冻词缀
 #define AOE_AFFIX 2 //群伤词缀
-#define BLEED_AFFIX 3 //放血词缀
-#define FLASH_AFFIX 4 //闪现词缀
-#define SPEEDUP_AFFIX 5 //加速词缀
+#define AVOID_AFFIX 3 //免伤词缀
+#define BLEED_AFFIX 4 //放血词缀
+#define WEAKEN_AFFIX 5 //弱化词缀
 
 #define GRASS_PATH ":/pictures/green.jpg"
 #define ROAD_PATH ":/pictures/brown.jpg"
@@ -33,13 +33,13 @@
 #define MELEETOWER_PATH ":/pictures/tower1.png"
 #define REMOTETOWER_PATH ":/pictures/tower2.png"
 
-class Attack
+class AttackEffect
 {
 public:
     RemoteTower* tower;
     Enemy* enemy;
 public:
-    Attack(RemoteTower* _tower, Enemy* _enemy)
+    AttackEffect(RemoteTower* _tower, Enemy* _enemy)
     {
         tower = _tower;
         enemy = _enemy;
@@ -65,7 +65,7 @@ public:
     void drawRemoteTower(QPainter&); //画出远程塔
     void drawAffix(QPainter&); //画出词缀库
     void drawSelectAffix(QPainter&); //画出词缀选择框
-    void drawAttack(QPainter&); //画出远程塔攻击效果
+    void drawAttackEffect(QPainter&); //画出远程塔攻击效果
 
     void mousePressEvent(QMouseEvent*); //鼠标点击事件
     void showTip(Enemy* e);
@@ -87,12 +87,13 @@ private:
     QVector<MeleeTower*> meleeTowerVec; //近战塔数组
     QVector<RemoteTower*> remoteTowerVec; //远程塔数组
     QVector<Enemy*> enemyVec; //敌人数组
-    QVector<Attack*> attackVec;
+    QVector<AttackEffect*> attackVec;
 
     int enemyCount; //敌人数量
 
     QTimer* enemyTimer; //产生敌人的计时器
     QTimer* gameTimer; //游戏的主计时器
+    QTimer* moneyTimer; //金币增加的计时器
 
     Ui::MapWidget *ui;
 
