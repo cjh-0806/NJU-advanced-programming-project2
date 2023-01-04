@@ -70,7 +70,7 @@ bool Enemy::move(const Map& map)
     pos.x = enemyRoad[0].x;
     pos.y = enemyRoad[0].y;
     enemyRoad.erase(enemyRoad.begin()); //删去路径初始点
-    if(speedup) //携带神速词缀，再走一格
+    if(speedup && map(enemyRoad[0].x, enemyRoad[0].y) != MELEETOWER_VALUE) //携带神速词缀，再走一格
     {
         if(enemyRoad.empty()) //走到路径尽头
         {
@@ -83,6 +83,18 @@ bool Enemy::move(const Map& map)
         enemyRoad.erase(enemyRoad.begin()); //删去路径初始点
     }
     return true;
+}
+
+void Enemy::add_weaken()
+{
+    weaken = true;
+    atk /= 2;
+}
+
+void Enemy::dec_weaken()
+{
+    weaken = false;
+    atk *= 2;
 }
 
 void Enemy::dec_hp()
@@ -115,15 +127,6 @@ void MeleeTower::dec_rage()
     atk /= 2;
 }
 
-void MeleeTower::add_frozen() { frozen = true; }
-void MeleeTower::dec_frozen() { frozen = false; }
-
-void MeleeTower::add_aoe() { aoe = true; }
-void MeleeTower::dec_aoe() { aoe = false; }
-
-void MeleeTower::add_avoid() { avoid = true; }
-void MeleeTower::dec_avoid() { avoid = false; }
-
 
 RemoteTower::RemoteTower(int x, int y, int _hp, int _atk, int _range, QString _path)
     : Unit(x, y, _hp, _atk, _range, _path)
@@ -132,11 +135,3 @@ RemoteTower::RemoteTower(int x, int y, int _hp, int _atk, int _range, QString _p
     aoe = bleed = weaken = false;
 }
 
-void RemoteTower::add_aoe() { aoe = true; }
-void RemoteTower::dec_aoe() { aoe = false; }
-
-void RemoteTower::add_bleed() { bleed = true; }
-void RemoteTower::dec_bleed() { bleed = false; }
-
-void RemoteTower::add_weaken() { weaken = true; }
-void RemoteTower::dec_weaken() { weaken = false; }

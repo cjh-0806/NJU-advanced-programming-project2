@@ -52,7 +52,8 @@ public:
 
     void set_frozen(bool b) { frozen = b; }
     void set_bleed(bool b) { bleed = b; }
-    void set_weaken(bool b) { weaken = b; }
+    void add_weaken();
+    void dec_weaken();
     void dec_hp();
 };
 
@@ -76,12 +77,9 @@ public:
     void dec_count() { affixCount--; }
     void add_rage();
     void dec_rage();
-    void add_frozen();
-    void dec_frozen();
-    void add_aoe();
-    void dec_aoe();
-    void add_avoid();
-    void dec_avoid();
+    void set_frozen(bool b) { frozen = b; }
+    void set_aoe(bool b) { aoe = b; }
+    void set_avoid(bool b) { avoid = b; }
 };
 
 class RemoteTower: public Unit //远程塔
@@ -99,12 +97,10 @@ public:
 
     void add_count() { affixCount++; }
     void dec_count() { affixCount--; }
-    void add_aoe();
-    void dec_aoe();
-    void add_bleed();
-    void dec_bleed();
-    void add_weaken();
-    void dec_weaken();
+    void set_aoe(bool b) { aoe = b; }
+    void set_bleed(bool b) { bleed = b; }
+    void set_weaken(bool b) { weaken = b; }
+
 };
 
 #endif // UNIT_H

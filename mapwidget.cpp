@@ -86,52 +86,47 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
     {
         //近战防御塔攻击
         for(auto tower : meleeTowerVec)
-            for(auto enemy = enemyVec.begin(); enemy != enemyVec.end(); )
+        {
+            if(tower->get_avoid())
+            {
+                tower->avoidTimer++;
+                if(tower->avoidTimer == 20) //免伤效果时间已过
+                {
+                    tower->avoidTimer = 0;
+                    tower->set_avoid(false);
+                    tower->dec_count();
+                    qDebug() << "取消免伤效果";
+                }
+            }
+            for(auto enemy = enemyVec.begin(); enemy != enemyVec.end(); enemy++)
             {
                 bool res = tower->attack(*enemy);
                 if(res) //攻击有效
                 {
                     if(tower->get_frozen() && !(*enemy)->get_frozen()) //冰冻效果
                         (*enemy)->set_frozen(true);
-                    if(!(*enemy)->isAlive()) //敌人死亡，删去这个敌人，掉落词缀，加金币
-                    {
-                        money += 20;
-                        moneyLabel->setText("金币数：" + QString::number(money));
-                        int index = rand() % 6; //随机掉落我方词缀
-                        affixArr[index]++;
-                        //showTip(*enemy);
-                        enemyVec.erase(enemy);
-                    }
                     if(!tower->get_aoe()) //未安装群伤词缀，一次只攻击一个敌人
                         break;
                 }
-                else enemy++;
             }
+        }
 
         //远程防御塔攻击
         attackVec.clear();
         for(auto tower : remoteTowerVec)
-            for(auto enemy = enemyVec.begin(); enemy != enemyVec.end(); )
+            for(auto enemy = enemyVec.begin(); enemy != enemyVec.end(); enemy++)
             {
                 bool res = tower->attack(*enemy);
                 if(res) //攻击有效
                 {
                     if(tower->get_bleed() && !(*enemy)->get_bleed()) //放血效果
                         (*enemy)->set_bleed(true);
-                    if(!(*enemy)->isAlive()) //敌人死亡，删去这个敌人，掉落词缀，加金币
-                    {
-                        money += 20;
-                        moneyLabel->setText("金币数：" + QString::number(money));
-                        int index = rand() % 6; //随机掉落我方词缀
-                        affixArr[index]++;
-                        //showTip(*enemy);
-                        enemyVec.erase(enemy);
-                    }
-                    else
-                        attackVec.push_back(new AttackEffect(tower, *enemy));
-                    break; //一次只攻击一个敌人
+                    if(tower->get_weaken() && !(*enemy)->get_weaken()) //放血效果
+                        (*enemy)->add_weaken();
+                    attackVec.push_back(new AttackEffect(tower, *enemy));
+                    if(!tower->get_aoe()) //未安装群伤词缀，一次只攻击一个敌人
+                        break;
                 }
-                else enemy++;
             }
 
         //敌人移动
@@ -141,27 +136,27 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
             {
                 (*enemy)->bleedTimer++;
                 (*enemy)->dec_hp();
-                if((*enemy)->bleedTimer == 4) //已经被放血了四个时间单位，取消放血效果
+                if((*enemy)->bleedTimer == 5) //放血效果时间已过
                 {
                     (*enemy)->bleedTimer = 0;
                     (*enemy)->set_bleed(false);
                     qDebug() << "取消放血效果";
                 }
-                if(!(*enemy)->isAlive()) //敌人死亡，删去这个敌人，掉落词缀，加金币
-                {
-                    money += 20;
-                    moneyLabel->setText("金币数：" + QString::number(money));
-                    int index = rand() % 6; //随机掉落我方词缀
-                    affixArr[index]++;
-                    //showTip(*enemy);
-                    enemyVec.erase(enemy);
-                    continue;
-                }
+            }
+            if(!(*enemy)->isAlive()) //敌人死亡，删去这个敌人，掉落词缀，加金币
+            {
+                money += 20;
+                moneyLabel->setText("金币数：" + QString::number(money));
+                int index = rand() % 6; //随机掉落我方词缀
+                affixArr[index]++;
+                //showTip(*enemy);
+                enemyVec.erase(enemy);
+                continue;
             }
             if((*enemy)->get_frozen()) //被冰冻
             {
                 (*enemy)->frozenTimer++;
-                if((*enemy)->frozenTimer == 4) //已经被冰冻了四个时间单位，取消冰冻效果
+                if((*enemy)->frozenTimer == 5) //冰冻效果时间已过
                 {
                     (*enemy)->frozenTimer = 0;
                     (*enemy)->set_frozen(false);
@@ -169,6 +164,33 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                 }
                 enemy++;
                 continue;
+            }
+            if((*enemy)->get_weaken()) //被弱化
+            {
+                (*enemy)->weakenTimer++;
+                if((*enemy)->weakenTimer == 5) //弱化效果时间已过
+                {
+                    (*enemy)->weakenTimer = 0;
+                    (*enemy)->dec_weaken();
+                    qDebug() << "取消弱化效果";
+                }
+            }
+            //敌人攻击近战防御塔
+            for(auto tower = meleeTowerVec.begin(); tower != meleeTowerVec.end(); )
+            {
+                if((*tower)->get_avoid())
+                {
+                    tower++;
+                    continue;
+                }
+                (*enemy)->attack(*tower);
+                if(!(*tower)->isAlive())
+                {
+                    map.set_value((*tower)->get_x(), (*tower)->get_y(), ROAD_VALUE);
+                    select.set_display(false);
+                    meleeTowerVec.erase(tower);
+                }
+                else tower++;
             }
             if(!(*enemy)->move(map)) //敌人走到路径尽头，删去这个敌人，生命值-1
             {
@@ -179,24 +201,6 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                     this->close();
             }
             else enemy++;
-        }
-
-        //敌人攻击近战防御塔
-        for(auto enemy : enemyVec)
-        {
-            if(enemy->get_frozen()) //被冰冻
-                continue;
-            for(auto tower = meleeTowerVec.begin(); tower != meleeTowerVec.end(); )
-            {
-                enemy->attack(*tower);
-                if(!(*tower)->isAlive())
-                {
-                    map.set_value((*tower)->get_x(), (*tower)->get_y(), ROAD_VALUE);
-                    select.set_display(false);
-                    meleeTowerVec.erase(tower);
-                }
-                else tower++;
-            }
         }
         update();
     });
@@ -320,6 +324,19 @@ void MapWidget::drawMeleeTower(QPainter& painter) //画出近战塔
             int x = (tower->get_x()+0.1) * UNIT_LENGTH;
             int y = (tower->get_y()+0.1) * UNIT_LENGTH;
             painter.drawPixmap(x, y, 0.8*UNIT_LENGTH, 0.8*UNIT_LENGTH, tower->get_path());
+            if(tower->get_avoid()) //添加免伤效果
+            {
+                QPixmap pix1(":/pictures/avoid.png");
+                QPixmap pix2(pix1.size());
+                pix2.fill(Qt::transparent);
+                QPainter temp(&pix2);
+                temp.setCompositionMode(QPainter::CompositionMode_Source);
+                temp.drawPixmap(0, 0, pix1);
+                temp.setCompositionMode(QPainter::CompositionMode_DestinationIn);
+                temp.fillRect(pix2.rect(), QColor(0, 0, 0, 125)); //根据QColor中第四个参数设置透明度，0～255
+                temp.end();
+                painter.drawPixmap(x, y, 0.8*UNIT_LENGTH, 0.8*UNIT_LENGTH, pix2);
+            }
             if((tower->get_hp() / tower->get_sumhp()) < 1) //设置血条颜色
                 painter.setBrush(QBrush(Qt::red));
             else
@@ -506,7 +523,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 {
                     if(meleeTowerVec[select.get_index()]->get_count() < 2)
                     {
-                        meleeTowerVec[select.get_index()]->add_frozen();
+                        meleeTowerVec[select.get_index()]->set_frozen(true);
                         meleeTowerVec[select.get_index()]->add_count();
                         qDebug() << "安装冰系词缀";
                         affixArr[1]--;
@@ -514,7 +531,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 }
                 else
                 {
-                    meleeTowerVec[select.get_index()]->dec_frozen();
+                    meleeTowerVec[select.get_index()]->set_frozen(false);
                     meleeTowerVec[select.get_index()]->dec_count();
                     qDebug() << "卸下冰系词缀";
                 }
@@ -525,7 +542,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 {
                     if(meleeTowerVec[select.get_index()]->get_count() < 2)
                     {
-                        meleeTowerVec[select.get_index()]->add_aoe();
+                        meleeTowerVec[select.get_index()]->set_aoe(true);
                         meleeTowerVec[select.get_index()]->add_count();
                         qDebug() << "安装群伤词缀";
                         affixArr[2]--;
@@ -533,7 +550,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 }
                 else
                 {
-                    meleeTowerVec[select.get_index()]->dec_aoe();
+                    meleeTowerVec[select.get_index()]->set_aoe(false);
                     meleeTowerVec[select.get_index()]->dec_count();
                     qDebug() << "卸下群伤词缀";
                 }
@@ -544,7 +561,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 {
                     if(meleeTowerVec[select.get_index()]->get_count() < 2)
                     {
-                        meleeTowerVec[select.get_index()]->add_avoid();
+                        meleeTowerVec[select.get_index()]->set_avoid(true);
                         meleeTowerVec[select.get_index()]->add_count();
                         qDebug() << "安装免伤词缀";
                         affixArr[3]--;
@@ -552,7 +569,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 }
                 else
                 {
-                    meleeTowerVec[select.get_index()]->dec_avoid();
+                    meleeTowerVec[select.get_index()]->set_avoid(false);
                     meleeTowerVec[select.get_index()]->dec_count();
                     qDebug() << "卸下免伤词缀";
                 }
@@ -575,7 +592,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 {
                     if(remoteTowerVec[select.get_index()]->get_count() < 2)
                     {
-                        remoteTowerVec[select.get_index()]->add_aoe();
+                        remoteTowerVec[select.get_index()]->set_aoe(true);
                         remoteTowerVec[select.get_index()]->add_count();
                         qDebug() << "安装群伤词缀";
                         affixArr[2]--;
@@ -583,7 +600,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 }
                 else
                 {
-                    remoteTowerVec[select.get_index()]->dec_aoe();
+                    remoteTowerVec[select.get_index()]->set_aoe(false);
                     remoteTowerVec[select.get_index()]->dec_count();
                     qDebug() << "卸下群伤词缀";
                 }
@@ -594,7 +611,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 {
                     if(remoteTowerVec[select.get_index()]->get_count() < 2)
                     {
-                        remoteTowerVec[select.get_index()]->add_bleed();
+                        remoteTowerVec[select.get_index()]->set_bleed(true);
                         remoteTowerVec[select.get_index()]->add_count();
                         qDebug() << "安装放血词缀";
                         affixArr[4]--;
@@ -602,7 +619,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 }
                 else
                 {
-                    remoteTowerVec[select.get_index()]->dec_bleed();
+                    remoteTowerVec[select.get_index()]->set_bleed(false);
                     remoteTowerVec[select.get_index()]->dec_count();
                     qDebug() << "卸下放血词缀";
                 }
@@ -613,7 +630,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 {
                     if(remoteTowerVec[select.get_index()]->get_count() < 2)
                     {
-                        remoteTowerVec[select.get_index()]->add_weaken();
+                        remoteTowerVec[select.get_index()]->set_weaken(true);
                         remoteTowerVec[select.get_index()]->add_count();
                         qDebug() << "安装弱化词缀";
                         affixArr[5]--;
@@ -621,7 +638,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 }
                 else
                 {
-                    remoteTowerVec[select.get_index()]->dec_weaken();
+                    remoteTowerVec[select.get_index()]->set_weaken(false);
                     remoteTowerVec[select.get_index()]->dec_count();
                     qDebug() << "卸下弱化词缀";
                 }
