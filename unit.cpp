@@ -1,9 +1,12 @@
 #include "unit.h"
 
-Unit::Unit(int x, int y, int _hp, int _atk, int _range, QString _path)
-    : pos(x, y), hp(_hp), sumhp(_hp), atk(_atk), range(_range), path(_path)
+Unit::Unit(int x, int y, QString _path)
+    : pos(x, y), path(_path)
 {
     alive = true;
+    hp = sumhp = 100;
+    atk = 10;
+    range = 1;
 }
 
 bool Unit::inRange(Position _pos)
@@ -33,8 +36,8 @@ void Unit::hurted(Unit* attacker)
 }
 
 
-Enemy::Enemy(int _hp, int _atk, int _range, QString _path, QVector<Position> p, bool f, bool s)
-    : Unit(p[0].x, p[0].y, _hp, _atk, _range, _path)
+Enemy::Enemy(QString _path, QVector<Position> p, bool f, bool s)
+    : Unit(p[0].x, p[0].y, _path)
 {
     enemyRoad = p;
     frozen = bleed = weaken = false;
@@ -70,7 +73,7 @@ bool Enemy::move(const Map& map)
     pos.x = enemyRoad[0].x;
     pos.y = enemyRoad[0].y;
     enemyRoad.erase(enemyRoad.begin()); //删去路径初始点
-    if(speedup && map(enemyRoad[0].x, enemyRoad[0].y) != MELEETOWER_VALUE) //携带神速词缀，再走一格
+    if(speedup) //携带神速词缀，再走一格
     {
         if(enemyRoad.empty()) //走到路径尽头
         {
@@ -78,9 +81,12 @@ bool Enemy::move(const Map& map)
             return false;
         }
         //更新坐标
-        pos.x = enemyRoad[0].x;
-        pos.y = enemyRoad[0].y;
-        enemyRoad.erase(enemyRoad.begin()); //删去路径初始点
+        if(map(enemyRoad[0].x, enemyRoad[0].y) != MELEETOWER_VALUE)
+        {
+            pos.x = enemyRoad[0].x;
+            pos.y = enemyRoad[0].y;
+            enemyRoad.erase(enemyRoad.begin()); //删去路径初始点
+        }
     }
     return true;
 }
@@ -105,8 +111,8 @@ void Enemy::dec_hp()
 }
 
 
-MeleeTower::MeleeTower(int x, int y, int _hp, int _atk, int _range, QString _path)
-    : Unit(x, y, _hp, _atk, _range, _path)
+MeleeTower::MeleeTower(int x, int y, QString _path)
+    : Unit(x, y, _path)
 {
     affixCount = 0;
     rage = frozen = aoe = avoid = false;
@@ -128,9 +134,10 @@ void MeleeTower::dec_rage()
 }
 
 
-RemoteTower::RemoteTower(int x, int y, int _hp, int _atk, int _range, QString _path)
-    : Unit(x, y, _hp, _atk, _range, _path)
+RangedTower::RangedTower(int x, int y, QString _path)
+    : Unit(x, y, _path)
 {
+    range = 3;
     affixCount = 0;
     aoe = bleed = weaken = false;
 }

@@ -14,7 +14,7 @@ protected:
     bool alive; //是否存活
     QString path; //图片存放路径
 public:
-    Unit(int x, int y, int _hp, int _atk, int _range, QString _path);
+    Unit(int x, int y, QString _path);
 
     Position get_pos() const { return pos; }
     int get_x() const { return pos.x; }
@@ -43,7 +43,7 @@ public:
     int bleedTimer;
     int weakenTimer;
     int flashTimer;
-    Enemy(int _hp, int _atk, int _range, QString _path, QVector<Position> p, bool f, bool s);
+    Enemy(QString _path, QVector<Position> p, bool f, bool s);
     bool move(const Map& map);
 
     bool get_frozen() const { return frozen; }
@@ -66,7 +66,7 @@ class MeleeTower: public Unit //近战塔
     bool avoid;
 public:
     int avoidTimer;
-    MeleeTower(int x, int y, int _hp, int _atk, int _range, QString _path);
+    MeleeTower(int x, int y, QString _path);
     int get_count() const { return affixCount; }
     bool get_rage() const { return rage; }
     bool get_frozen() const { return frozen; }
@@ -82,14 +82,14 @@ public:
     void set_avoid(bool b) { avoid = b; }
 };
 
-class RemoteTower: public Unit //远程塔
+class RangedTower: public Unit //远程塔
 {
     int affixCount;
     bool aoe;
     bool bleed;
     bool weaken;
 public:
-    RemoteTower(int x, int y, int _hp, int _atk, int _range, QString _path);
+    RangedTower(int x, int y, QString _path);
     int get_count() const { return affixCount; }
     bool get_aoe() const { return aoe; }
     bool get_bleed() const { return bleed; }

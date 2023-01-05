@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QSoundEffect>
 #include "map.h"
 
 QT_BEGIN_NAMESPACE

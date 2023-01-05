@@ -17,5 +17,12 @@
         <file>pictures/bleed.png</file>
         <file>pictures/frozen.png</file>
         <file>pictures/avoid.png</file>
+        <file>sounds/enemy.wav</file>
+        <file>sounds/add_affix.wav</file>
+        <file>sounds/die.wav</file>
+        <file>sounds/load.wav</file>
+        <file>sounds/unavailable.wav</file>
+        <file>sounds/unload.wav</file>
+        <file>sounds/click.wav</file>
     </qresource>
 </RCC>

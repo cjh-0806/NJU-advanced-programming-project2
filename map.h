@@ -11,7 +11,7 @@ using namespace std;
 #define GRASS_VALUE 0
 #define ROAD_VALUE 1
 #define MELEETOWER_VALUE 2
-#define REMOTETOWER_VALUE 3
+#define RANGEDTOWER_VALUE 3
 
 #define UNIT_LENGTH 100
 

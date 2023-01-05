@@ -9,6 +9,7 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QFont>
+#include <QSoundEffect>
 
 #include <stdlib.h>
 #include <ctime>
@@ -31,15 +32,28 @@
 #define ENEMY1_PATH ":/pictures/enemy1.png"
 #define ENEMY2_PATH ":/pictures/enemy2.png"
 #define MELEETOWER_PATH ":/pictures/tower1.png"
-#define REMOTETOWER_PATH ":/pictures/tower2.png"
+#define RANGEDTOWER_PATH ":/pictures/tower2.png"
 
-class AttackEffect
+class RangedAttackEffect
 {
 public:
-    RemoteTower* tower;
+    RangedTower* tower;
     Enemy* enemy;
 public:
-    AttackEffect(RemoteTower* _tower, Enemy* _enemy)
+    RangedAttackEffect(RangedTower* _tower, Enemy* _enemy)
+    {
+        tower = _tower;
+        enemy = _enemy;
+    }
+};
+
+class MeleeAttackEffect
+{
+public:
+    MeleeTower* tower;
+    Enemy* enemy;
+public:
+    MeleeAttackEffect(MeleeTower* _tower, Enemy* _enemy)
     {
         tower = _tower;
         enemy = _enemy;
@@ -62,7 +76,7 @@ public:
     void drawMap(QPainter&); //画出地图
     void drawEnemy(QPainter&); //画出敌人
     void drawMeleeTower(QPainter&); //画出近战塔
-    void drawRemoteTower(QPainter&); //画出远程塔
+    void drawRangedTower(QPainter&); //画出远程塔
     void drawAffix(QPainter&); //画出词缀库
     void drawSelectAffix(QPainter&); //画出词缀选择框
     void drawAttackEffect(QPainter&); //画出远程塔攻击效果
@@ -80,14 +94,16 @@ private:
     //QLabel* tipLabel;
     QTimer* tipTimer; //提示标签消失的计时器
 
-    QVector<Position> rmtTowerPosVec; //远程塔安置点
+    QVector<Position> rangedTowerPosVec; //远程塔安置点
     int affixArr[6]; //词缀库，六种词缀
     SelectAffix select; //词缀选择框
 
     QVector<MeleeTower*> meleeTowerVec; //近战塔数组
-    QVector<RemoteTower*> remoteTowerVec; //远程塔数组
+    QVector<RangedTower*> rangedTowerVec; //远程塔数组
     QVector<Enemy*> enemyVec; //敌人数组
-    QVector<AttackEffect*> attackVec;
+
+    QVector<MeleeAttackEffect*> meleeatkVec;
+    QVector<RangedAttackEffect*> rangedatkVec;
 
     int enemyCount; //敌人数量
 
