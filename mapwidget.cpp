@@ -9,6 +9,7 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
     this->setFixedSize((map.get_m()+1) * UNIT_LENGTH, max(6, map.get_n()) * UNIT_LENGTH);
     ui->setupUi(this);
     enemyCount = 0;
+    isPlay = volume = true;
 
     //金币标签
     money = 450;
@@ -21,9 +22,6 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
     lifeLabel = new QLabel(this);
     lifeLabel->setGeometry(20, 70, 200, 20);
     lifeLabel->setText("生命值：" + QString::number(life));
-
-    tipTimer = new QTimer(this);
-    tipTimer->setInterval(1000);
 
     //远程塔可安置点，有重复
     for(int i = 0; i < map.get_num(); ++i)
@@ -71,11 +69,13 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                 enemyVec.push_back(new Enemy(ENEMY1_PATH, map.get_road(index), true, false));
             else
                 enemyVec.push_back(new Enemy(ENEMY2_PATH, map.get_road(index), false, true));
-            //音效
-            QSoundEffect* effect = new QSoundEffect(this);
-            effect->setSource(QUrl("qrc:///sounds/enemy.wav"));
-            effect->setLoopCount(1);
-            effect->play();
+            if(volume) //音效
+            {
+                QSoundEffect* effect = new QSoundEffect(this);
+                effect->setSource(QUrl("qrc:///sounds/enemy.wav"));
+                effect->setLoopCount(1);
+                effect->play();
+            }
             enemyCount++;
         }
         if(life > 0 && enemyCount == ENEMY_MAX_NUM && enemyVec.empty()) //击败所有敌人，游戏成功
@@ -96,12 +96,11 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
             if(tower->get_avoid())
             {
                 tower->avoidTimer++;
-                if(tower->avoidTimer == 20) //免伤效果时间已过
+                if(tower->avoidTimer == 10) //免伤效果时间已过
                 {
                     tower->avoidTimer = 0;
                     tower->set_avoid(false);
                     tower->dec_count();
-                    qDebug() << "取消免伤效果";
                 }
             }
             for(auto enemy = enemyVec.begin(); enemy != enemyVec.end(); enemy++)
@@ -147,7 +146,6 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                 {
                     (*enemy)->bleedTimer = 0;
                     (*enemy)->set_bleed(false);
-                    qDebug() << "取消放血效果";
                 }
             }
             if(!(*enemy)->isAlive()) //敌人死亡，删去这个敌人，掉落词缀，加金币
@@ -157,10 +155,13 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                 int index = rand() % 6; //随机掉落我方词缀
                 affixArr[index]++;
                 enemyVec.erase(enemy);
-                QSoundEffect* effect = new QSoundEffect(this);
-                effect->setSource(QUrl("qrc:///sounds/die.wav"));
-                effect->setLoopCount(1);
-                effect->play();
+                if(volume)
+                {
+                    QSoundEffect* effect = new QSoundEffect(this);
+                    effect->setSource(QUrl("qrc:///sounds/die.wav"));
+                    effect->setLoopCount(1);
+                    effect->play();
+                }
                 continue;
             }
             if((*enemy)->get_frozen()) //被冰冻
@@ -170,7 +171,6 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                 {
                     (*enemy)->frozenTimer = 0;
                     (*enemy)->set_frozen(false);
-                    qDebug() << "取消冰冻效果";
                 }
                 enemy++;
                 continue;
@@ -182,7 +182,6 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                 {
                     (*enemy)->weakenTimer = 0;
                     (*enemy)->dec_weaken();
-                    qDebug() << "取消弱化效果";
                 }
             }
             //敌人攻击近战防御塔
@@ -207,6 +206,13 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                 enemyVec.erase(enemy);
                 life--;
                 lifeLabel->setText("生命值：" + QString::number(life));
+                if(volume)
+                {
+                    QSoundEffect* effect = new QSoundEffect(this);
+                    effect->setSource(QUrl("qrc:///sounds/move.wav"));
+                    effect->setLoopCount(1);
+                    effect->play();
+                }
                 if(life == 0) //生命值为0，游戏失败
                     this->close();
             }
@@ -229,11 +235,25 @@ void MapWidget::closeEvent(QCloseEvent* event)
     moneyTimer->stop();
     if(life == 0)
     {
+        if(volume)
+        {
+            QSoundEffect* effect = new QSoundEffect(this);
+            effect->setSource(QUrl("qrc:///sounds/defeat.wav"));
+            effect->setLoopCount(1);
+            effect->play();
+        }
         QMessageBox::information(this, "结束", "游戏失败！");
         event->accept();
     }
     else if(life > 0 && enemyCount == ENEMY_MAX_NUM && enemyVec.empty()) //击败所有敌人，游戏成功
     {
+        if(volume)
+        {
+            QSoundEffect* effect = new QSoundEffect(this);
+            effect->setSource(QUrl("qrc:///sounds/victory.wav"));
+            effect->setLoopCount(1);
+            effect->play();
+        }
         QMessageBox::information(this, "结束", "游戏成功！");
         event->accept();
     }
@@ -263,6 +283,7 @@ void MapWidget::paintEvent(QPaintEvent*)
     drawAffix(painter);
     drawSelectAffix(painter);
     drawAttackEffect(painter);
+    drawButton(painter);
 }
 
 void MapWidget::drawMap(QPainter& painter) //画出地图
@@ -504,6 +525,22 @@ void MapWidget::drawAttackEffect(QPainter &painter) //画出远程塔攻击效�
     }
 }
 
+void MapWidget::drawButton(QPainter &painter) //画出暂停键和音量键
+{
+    int x = (map.get_m()-1) * UNIT_LENGTH;
+    int y = 0.1*UNIT_LENGTH;
+    if(isPlay)
+        painter.drawPixmap(x, y, 0.4*UNIT_LENGTH, 0.4*UNIT_LENGTH, QString::fromStdString(":/pictures/start.png"));
+    else
+        painter.drawPixmap(x, y, 0.4*UNIT_LENGTH, 0.4*UNIT_LENGTH, QString::fromStdString(":/pictures/stop.png"));
+    painter.drawPixmap(x+0.5*UNIT_LENGTH, y, 0.4*UNIT_LENGTH, 0.4*UNIT_LENGTH, QString::fromStdString(":/pictures/sound.png"));
+    if(!volume)
+    {
+        painter.setPen(QPen(Qt::black, 2));
+        painter.drawLine(x+0.5*UNIT_LENGTH, y, x+0.9*UNIT_LENGTH, y+0.4*UNIT_LENGTH);
+    }
+}
+
 void MapWidget::mousePressEvent(QMouseEvent* event)
 {
     if (event->button() != Qt::LeftButton) //鼠标左键点击
@@ -513,7 +550,27 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
     qDebug() << "按下左键" << mx << my;
 
     int sound = 0;
-    if(select.get_display() && select.get_x() <= mx && mx < select.get_x() + select.get_length()
+    int buttonX = (map.get_m()-1) * UNIT_LENGTH; int buttonY = 0.1*UNIT_LENGTH;
+    if(buttonX <= mx && mx < buttonX+0.4*UNIT_LENGTH && buttonY <= my && my < buttonY+0.4*UNIT_LENGTH) //暂停键
+    {
+        isPlay = 1 - isPlay;
+        if(isPlay)
+        {
+            enemyTimer->start();
+            gameTimer->start();
+            moneyTimer->start();
+        }
+        else
+        {
+            enemyTimer->stop();
+            gameTimer->stop();
+            moneyTimer->stop();
+        }
+    }
+    else if(buttonX+0.5*UNIT_LENGTH <= mx && mx < buttonX+0.9*UNIT_LENGTH && buttonY <= my && my < buttonY+0.4*UNIT_LENGTH) //音量键
+        volume = 1 - volume;
+
+    else if(select.get_display() && select.get_x() <= mx && mx < select.get_x() + select.get_length()
             && select.get_y() <= my && my < select.get_y()+select.get_height()) //鼠标位置在词缀选择框内
     {
         if(select.get_type() == MELEETOWER_VALUE) //近战塔
@@ -526,7 +583,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                     {
                         meleeTowerVec[select.get_index()]->add_rage();
                         meleeTowerVec[select.get_index()]->add_count();
-                        sound = 1; qDebug() << "安装狂暴词缀";
+                        sound = 1;
                         affixArr[0]--;
                     }
                 }
@@ -534,7 +591,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 {
                     meleeTowerVec[select.get_index()]->dec_rage();
                     meleeTowerVec[select.get_index()]->dec_count();
-                    sound = 2; qDebug() << "卸下狂暴词缀";
+                    sound = 2;
                 }
             }
             else if(select.get_x() + select.get_height() <= mx && mx < select.get_x() + select.get_height()*2) //冰系词缀
@@ -545,7 +602,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                     {
                         meleeTowerVec[select.get_index()]->set_frozen(true);
                         meleeTowerVec[select.get_index()]->add_count();
-                        sound = 1; qDebug() << "安装冰系词缀";
+                        sound = 1;
                         affixArr[1]--;
                     }
                 }
@@ -553,7 +610,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 {
                     meleeTowerVec[select.get_index()]->set_frozen(false);
                     meleeTowerVec[select.get_index()]->dec_count();
-                    sound = 2; qDebug() << "卸下冰系词缀";
+                    sound = 2;
                 }
             }
             else if(select.get_x() + select.get_height()*2 <= mx && mx < select.get_x() + select.get_height()*3) //群伤词缀
@@ -564,7 +621,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                     {
                         meleeTowerVec[select.get_index()]->set_aoe(true);
                         meleeTowerVec[select.get_index()]->add_count();
-                        sound = 1; qDebug() << "安装群伤词缀";
+                        sound = 1;
                         affixArr[2]--;
                     }
                 }
@@ -572,7 +629,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 {
                     meleeTowerVec[select.get_index()]->set_aoe(false);
                     meleeTowerVec[select.get_index()]->dec_count();
-                    sound = 2; qDebug() << "卸下群伤词缀";
+                    sound = 2;
                 }
             }
             else if(select.get_x() + select.get_height()*3 <= mx && mx < select.get_x() + select.get_height()*4) //免伤词缀
@@ -583,7 +640,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                     {
                         meleeTowerVec[select.get_index()]->set_avoid(true);
                         meleeTowerVec[select.get_index()]->add_count();
-                        sound = 1; qDebug() << "安装免伤词缀";
+                        sound = 1;
                         affixArr[3]--;
                     }
                 }
@@ -591,7 +648,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 {
                     meleeTowerVec[select.get_index()]->set_avoid(false);
                     meleeTowerVec[select.get_index()]->dec_count();
-                    sound = 2; qDebug() << "卸下免伤词缀";
+                    sound = 2;
                 }
             }
             else //撤销塔
@@ -615,7 +672,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                     {
                         rangedTowerVec[select.get_index()]->set_aoe(true);
                         rangedTowerVec[select.get_index()]->add_count();
-                        sound = 1; qDebug() << "安装群伤词缀";
+                        sound = 1;
                         affixArr[2]--;
                     }
                 }
@@ -623,7 +680,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 {
                     rangedTowerVec[select.get_index()]->set_aoe(false);
                     rangedTowerVec[select.get_index()]->dec_count();
-                    sound = 2; qDebug() << "卸下群伤词缀";
+                    sound = 2;
                 }
             }
             else if(select.get_x() + select.get_height() <= mx && mx < select.get_x() + select.get_height()*2) //放血词缀
@@ -634,7 +691,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                     {
                         rangedTowerVec[select.get_index()]->set_bleed(true);
                         rangedTowerVec[select.get_index()]->add_count();
-                        sound = 1; qDebug() << "安装放血词缀";
+                        sound = 1;
                         affixArr[4]--;
                     }
                 }
@@ -642,7 +699,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 {
                     rangedTowerVec[select.get_index()]->set_bleed(false);
                     rangedTowerVec[select.get_index()]->dec_count();
-                    sound = 2; qDebug() << "卸下放血词缀";
+                    sound = 2;
                 }
             }
             else if(select.get_x() + select.get_height()*2 <= mx && mx < select.get_x() + select.get_height()*3) //弱化词缀
@@ -653,7 +710,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                     {
                         rangedTowerVec[select.get_index()]->set_weaken(true);
                         rangedTowerVec[select.get_index()]->add_count();
-                        sound = 1; qDebug() << "安装弱化词缀";
+                        sound = 1;
                         affixArr[5]--;
                     }
                 }
@@ -661,7 +718,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 {
                     rangedTowerVec[select.get_index()]->set_weaken(false);
                     rangedTowerVec[select.get_index()]->dec_count();
-                    sound = 2; qDebug() << "卸下弱化词缀";
+                    sound = 2;
                 }
             }
             else //撤销塔
@@ -675,14 +732,14 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 sound = 2;
             }
         }
-        if(sound == 1)
+        if(sound == 1 && volume)
         {
             QSoundEffect* effect = new QSoundEffect(this);
             effect->setSource(QUrl("qrc:///sounds/add_affix.wav"));
             effect->setLoopCount(1);
             effect->play();
         }
-        if(sound == 2)
+        if(sound == 2 && volume)
         {
             QSoundEffect* effect = new QSoundEffect(this);
             effect->setSource(QUrl("qrc:///sounds/unload.wav"));
@@ -766,26 +823,29 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
                 flag = false;
             }
         }
-        if(sound == 0)
+        if(volume)
         {
-            QSoundEffect* effect = new QSoundEffect(this);
-            effect->setSource(QUrl("qrc:///sounds/unavailable.wav"));
-            effect->setLoopCount(1);
-            effect->play();
-        }
-        else if(sound == 1)
-        {
-            QSoundEffect* effect = new QSoundEffect(this);
-            effect->setSource(QUrl("qrc:///sounds/click.wav"));
-            effect->setLoopCount(1);
-            effect->play();
-        }
-        else
-        {
-            QSoundEffect* effect = new QSoundEffect(this);
-            effect->setSource(QUrl("qrc:///sounds/load.wav"));
-            effect->setLoopCount(1);
-            effect->play();
+            if(sound == 0)
+            {
+                QSoundEffect* effect = new QSoundEffect(this);
+                effect->setSource(QUrl("qrc:///sounds/unavailable.wav"));
+                effect->setLoopCount(1);
+                effect->play();
+            }
+            else if(sound == 1)
+            {
+                QSoundEffect* effect = new QSoundEffect(this);
+                effect->setSource(QUrl("qrc:///sounds/click.wav"));
+                effect->setLoopCount(1);
+                effect->play();
+            }
+            else
+            {
+                QSoundEffect* effect = new QSoundEffect(this);
+                effect->setSource(QUrl("qrc:///sounds/load.wav"));
+                effect->setLoopCount(1);
+                effect->play();
+            }
         }
     }
 

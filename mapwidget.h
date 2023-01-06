@@ -80,6 +80,7 @@ public:
     void drawAffix(QPainter&); //画出词缀库
     void drawSelectAffix(QPainter&); //画出词缀选择框
     void drawAttackEffect(QPainter&); //画出远程塔攻击效果
+    void drawButton(QPainter&); //画出暂停键和音量键
 
     void mousePressEvent(QMouseEvent*); //鼠标点击事件
     void showTip(Enemy* e);
@@ -90,9 +91,8 @@ private:
     QLabel* moneyLabel; //金币标签
     int life; //生命值
     QLabel* lifeLabel; //生命标签
-
-    //QLabel* tipLabel;
-    QTimer* tipTimer; //提示标签消失的计时器
+    bool isPlay; //是否在运行
+    bool volume; //是否有音量
 
     QVector<Position> rangedTowerPosVec; //远程塔安置点
     int affixArr[6]; //词缀库，六种词缀

@@ -24,5 +24,11 @@
         <file>sounds/unavailable.wav</file>
         <file>sounds/unload.wav</file>
         <file>sounds/click.wav</file>
+        <file>sounds/defeat.wav</file>
+        <file>sounds/move.wav</file>
+        <file>sounds/victory.wav</file>
+        <file>pictures/sound.png</file>
+        <file>pictures/start.png</file>
+        <file>pictures/stop.png</file>
     </qresource>
 </RCC>
