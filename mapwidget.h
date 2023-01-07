@@ -17,23 +17,6 @@
 #include "unit.h"
 #include "selectaffix.h"
 
-#define ENEMY_MAX_NUM 50
-
-#define RAGE_AFFIX 0 //狂暴词缀
-#define FROZEN_AFFIX 1 //冰冻词缀
-#define AOE_AFFIX 2 //群伤词缀
-#define AVOID_AFFIX 3 //免伤词缀
-#define BLEED_AFFIX 4 //放血词缀
-#define WEAKEN_AFFIX 5 //弱化词缀
-
-#define GRASS_PATH ":/pictures/green.jpg"
-#define ROAD_PATH ":/pictures/brown.jpg"
-#define ENEMY_PATH ":/pictures/enemy.png"
-#define ENEMY1_PATH ":/pictures/enemy1.png"
-#define ENEMY2_PATH ":/pictures/enemy2.png"
-#define MELEETOWER_PATH ":/pictures/tower1.png"
-#define RANGEDTOWER_PATH ":/pictures/tower2.png"
-
 class RangedAttackEffect
 {
 public:

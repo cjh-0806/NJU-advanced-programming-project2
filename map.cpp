@@ -114,3 +114,30 @@ void Map::file2map(const char *src)
             mapMatrix[roads[i][j].x][roads[i][j].y] = ROAD_VALUE;
     fin.close();
 }
+
+Map& Map::operator=(const Map& map)
+{
+    if (this == &map)
+        return *this;
+    this->m = map.m;
+    this->n = map.n;
+    this->num = map.num;
+    this->roads = map.roads;
+    if(mapMatrix != NULL)
+    {
+        delete mapMatrix;
+        mapMatrix = NULL;
+    }
+    mapMatrix = new int*[m];
+    int i, j;
+    for(i = 0; i < m; ++i)
+        mapMatrix[i] = new int[n];
+    //初始化
+    for(i = 0; i < m; ++i)
+        for(j = 0; j < n; ++j)
+            mapMatrix[i][j] = GRASS_VALUE;
+    for(i = 0; i < (int)roads.size(); ++i)
+        for(j = 0; j < (int)roads[i].size(); ++j)
+            mapMatrix[roads[i][j].x][roads[i][j].y] = ROAD_VALUE;
+    return *this;
+}

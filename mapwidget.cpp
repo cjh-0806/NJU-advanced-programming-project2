@@ -40,35 +40,37 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
 
     //词缀库初始化
     for(int i = 0; i < 6; ++i)
-        affixArr[i] = 0; //每个词缀数量为0
+        affixArr[i] = 1; //每个词缀数量为1
 
     //金币增加的计时器
     moneyTimer = new QTimer(this);
-    moneyTimer->setInterval(1000);
+    moneyTimer->setInterval(MONEY_INTERVAL);
     moneyTimer->start();
     connect(moneyTimer, &QTimer::timeout, [&]()
     {
-        money += 5;
+        money += 10;
         moneyLabel->setText("金币数：" + QString::number(money));
     });
 
     //产生敌人的计时器
     srand((unsigned)time(NULL));
     enemyTimer = new QTimer(this);
-    enemyTimer->setInterval(3000);
+    enemyTimer->setInterval(ENEMY_INTERVAL);
     enemyTimer->start();
     connect(enemyTimer, &QTimer::timeout, [&]()
     {
         if(enemyCount < ENEMY_MAX_NUM)
         {
             int index = rand() % map.get_num(); //随机选择一条路径作为敌人路径
-            int enemyType = rand() % 3;
+            int enemyType = rand() % 4;
             if(enemyType == 0)
                 enemyVec.push_back(new Enemy(ENEMY_PATH, map.get_road(index), false, false));
             else if(enemyType == 1)
                 enemyVec.push_back(new Enemy(ENEMY1_PATH, map.get_road(index), true, false));
-            else
+            else if(enemyType == 2)
                 enemyVec.push_back(new Enemy(ENEMY2_PATH, map.get_road(index), false, true));
+            else
+                enemyVec.push_back(new Enemy(ENEMY3_PATH, map.get_road(index), true, true));
             if(volume) //音效
             {
                 QSoundEffect* effect = new QSoundEffect(this);
@@ -85,7 +87,7 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
 
     //游戏的主计时器
     gameTimer = new QTimer(this);
-    gameTimer->setInterval(1000);
+    gameTimer->setInterval(GAME_INTERVAL);
     gameTimer->start();
     connect(gameTimer, &QTimer::timeout, [&]()
     {
@@ -108,8 +110,11 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                 bool res = tower->attack(*enemy);
                 if(res) //攻击有效
                 {
-                    if(tower->get_frozen() && !(*enemy)->get_frozen()) //冰冻效果
+                    if(tower->get_frozen()) //冰冻效果
+                    {
                         (*enemy)->set_frozen(true);
+                        (*enemy)->frozenTimer = 0;
+                    }
                     meleeatkVec.push_back(new MeleeAttackEffect(tower, *enemy));
                     if(!tower->get_aoe()) //未安装群伤词缀，一次只攻击一个敌人
                         break;
@@ -125,10 +130,16 @@ MapWidget::MapWidget(QWidget *parent, Map m) :
                 bool res = tower->attack(*enemy);
                 if(res) //攻击有效
                 {
-                    if(tower->get_bleed() && !(*enemy)->get_bleed()) //放血效果
+                    if(tower->get_bleed()) //放血效果
+                    {
                         (*enemy)->set_bleed(true);
-                    if(tower->get_weaken() && !(*enemy)->get_weaken()) //放血效果
+                        (*enemy)->bleedTimer = 0;
+                    }
+                    if(tower->get_weaken()) //弱化效果
+                    {
                         (*enemy)->add_weaken();
+                        (*enemy)->weakenTimer = 0;
+                    }
                     rangedatkVec.push_back(new RangedAttackEffect(tower, *enemy));
                     if(!tower->get_aoe()) //未安装群伤词缀，一次只攻击一个敌人
                         break;
@@ -310,7 +321,7 @@ void MapWidget::drawEnemy(QPainter& painter) //画出敌人
             int x = (enemy->get_x()+0.1) * UNIT_LENGTH;
             int y = (enemy->get_y()+0.1) * UNIT_LENGTH;
             if(enemy->get_weaken())
-                painter.drawPixmap(x+0.1*UNIT_LENGTH, y+0.1*UNIT_LENGTH, 0.6*UNIT_LENGTH, 0.6*UNIT_LENGTH, enemy->get_path());
+                painter.drawPixmap(x+0.2*UNIT_LENGTH, y+0.2*UNIT_LENGTH, 0.4*UNIT_LENGTH, 0.4*UNIT_LENGTH, enemy->get_path());
             else
                 painter.drawPixmap(x, y, 0.8*UNIT_LENGTH, 0.8*UNIT_LENGTH, enemy->get_path());
             if(enemy->get_frozen()) //添加冰冻效果

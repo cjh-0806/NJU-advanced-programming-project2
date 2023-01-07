@@ -33,6 +33,7 @@ public:
 class Enemy: public Unit //敌人
 {
     QVector<Position> enemyRoad; //敌人经过路径
+    int sumatk;
     bool frozen; //是否被冰冻
     bool bleed; //是否被放血
     bool weaken; //是否被弱化

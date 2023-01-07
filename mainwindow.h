@@ -30,6 +30,7 @@ private slots:
 
 private:
     Map map;
+    bool ifImport;
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H

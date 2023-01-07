@@ -30,5 +30,6 @@
         <file>pictures/sound.png</file>
         <file>pictures/start.png</file>
         <file>pictures/stop.png</file>
+        <file>pictures/enemy3.png</file>
     </qresource>
 </RCC>

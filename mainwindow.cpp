@@ -7,6 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
+    ifImport = false;
     ui->setupUi(this);
 }
 
@@ -17,7 +18,13 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_startButton_clicked()
 {
+    if(!ifImport)
+    {
+        Map map1;
+        map = map1;
+    }
     MapWidget* m_w = new MapWidget(nullptr, map);
+    ifImport = false;
     m_w->show();
 }
 
@@ -39,6 +46,7 @@ void MainWindow::on_importButton_clicked() //导入用户自己设计的地图�
     {
         map.file2map(filePath.toStdString().c_str());
         QMessageBox::information(this, "导入地图", "已成功导入地图" + filePath);
+        ifImport = true;
     }
 }
 

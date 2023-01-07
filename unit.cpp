@@ -40,6 +40,7 @@ Enemy::Enemy(QString _path, QVector<Position> p, bool f, bool s)
     : Unit(p[0].x, p[0].y, _path)
 {
     enemyRoad = p;
+    sumatk = 10;
     frozen = bleed = weaken = false;
     flash = f;
     speedup = s;
@@ -57,16 +58,23 @@ bool Enemy::move(const Map& map)
     {
         if(!flash) //没有闪现词缀
             return true;
-        else //携带闪现词缀，越过近战塔
+        else //携带闪现词缀
         {
-            pos.x = enemyRoad[0].x;
-            pos.y = enemyRoad[0].y;
-            enemyRoad.erase(enemyRoad.begin()); //删去路径初始点
-            if(enemyRoad.empty()) //走到路径尽头
+            flashTimer++;
+            if(flashTimer == 10) //冷却结束，越过近战塔
             {
-                alive = false;
-                return false;
+                flashTimer = 0;
+                pos.x = enemyRoad[0].x;
+                pos.y = enemyRoad[0].y;
+                enemyRoad.erase(enemyRoad.begin()); //删去路径初始点
+                if(enemyRoad.empty()) //走到路径尽头
+                {
+                    alive = false;
+                    return false;
+                }
             }
+            else
+                return true;
         }
     }
     //更新坐标
@@ -94,13 +102,13 @@ bool Enemy::move(const Map& map)
 void Enemy::add_weaken()
 {
     weaken = true;
-    atk /= 2;
+    atk = sumatk / 2;
 }
 
 void Enemy::dec_weaken()
 {
     weaken = false;
-    atk *= 2;
+    atk = sumatk;
 }
 
 void Enemy::dec_hp()

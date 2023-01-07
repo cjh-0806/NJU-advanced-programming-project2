@@ -8,12 +8,8 @@
 #include <QDebug>
 using namespace std;
 
-#define GRASS_VALUE 0
-#define ROAD_VALUE 1
-#define MELEETOWER_VALUE 2
-#define RANGEDTOWER_VALUE 3
+#include "define.h"
 
-#define UNIT_LENGTH 100
 
 struct Position
 {
@@ -42,6 +38,7 @@ public:
 
     void map2file(const char* src);
     void file2map(const char* src);
+    Map &operator=(const Map& map);
 };
 
 #endif // MAP_H

@@ -25,6 +25,7 @@ SOURCES += \
     unit.cpp
 
 HEADERS += \
+    define.h \
     mainwindow.h \
     map.h \
     mapwidget.h \
